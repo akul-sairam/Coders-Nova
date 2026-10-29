@@ -50,6 +50,8 @@ export default function App() {
   // Clinical Response
   const [clinicalResponse, setClinicalResponse] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
+  const [pdfDownloaded, setPdfDownloaded] = useState(false);
 
   // Ledger Verification Modal
   const [showLedgerModal, setShowLedgerModal] = useState(false);
@@ -224,7 +226,9 @@ export default function App() {
   // PDF GENERATION & AUDIT
   // -------------------------------------------------------------------------
   const handleDownloadPDF = async () => {
-    if (!clinicalResponse) return;
+    if (!clinicalResponse || downloadingPDF) return;
+    setDownloadingPDF(true);
+    setErrorMsg(null);
     try {
       await downloadHandoverPDF(
         clinicalResponse.clinical_data,
@@ -232,8 +236,13 @@ export default function App() {
         clinicalResponse.encounter_id,
         callSign
       );
+      setPdfDownloaded(true);
+      setTimeout(() => setPdfDownloaded(false), 3500);
     } catch (e) {
-      setErrorMsg("Failed to download handover PDF: " + e.message);
+      console.error("PDF download error:", e);
+      setErrorMsg("Failed to download handover PDF: " + (e.message || e));
+    } finally {
+      setDownloadingPDF(false);
     }
   };
 
@@ -492,6 +501,8 @@ export default function App() {
             fhirBundle={clinicalResponse?.fhir_bundle}
             auditBlock={clinicalResponse?.audit_block}
             onDownloadPDF={handleDownloadPDF}
+            downloadingPDF={downloadingPDF}
+            pdfDownloaded={pdfDownloaded}
           />
         </div>
 
@@ -520,7 +531,7 @@ export default function App() {
             <div className="flex items-center gap-3">
               <button
                 onClick={openLedgerModal}
-                className="neo-btn px-4 py-2.5 bg-white text-black text-xs font-black uppercase tracking-wider flex items-center gap-2"
+                className="neo-btn px-4 py-2.5 bg-white hover:bg-slate-100 text-black text-xs font-black uppercase tracking-wider flex items-center gap-2"
               >
                 <ShieldCheck className="w-4 h-4" />
                 Audit Trail
@@ -528,10 +539,26 @@ export default function App() {
 
               <button
                 onClick={handleDownloadPDF}
-                className="neo-btn px-5 py-2.5 bg-[#ffe600] text-black text-xs font-black uppercase tracking-wider shadow-neo flex items-center gap-2"
+                disabled={downloadingPDF}
+                className="neo-btn px-5 py-2.5 bg-[#ffe600] hover:bg-[#fde047] text-black text-xs font-black uppercase tracking-wider shadow-neo flex items-center gap-2 cursor-pointer disabled:opacity-60 transition-all"
+                title="Download verified clinical handover PDF"
               >
-                <FileDown className="w-4 h-4 stroke-[2.5]" />
-                Download Handover PDF
+                {downloadingPDF ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin stroke-[2.5]" />
+                    <span>GENERATING PDF...</span>
+                  </>
+                ) : pdfDownloaded ? (
+                  <>
+                    <CheckCircle2 className="w-4 h-4 text-black stroke-[3]" />
+                    <span>PDF DOWNLOADED!</span>
+                  </>
+                ) : (
+                  <>
+                    <FileDown className="w-4 h-4 stroke-[2.5]" />
+                    <span>DOWNLOAD HANDOVER PDF</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

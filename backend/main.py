@@ -347,13 +347,55 @@ async def generate_pdf_endpoint(
             content=pdf_bytes,
             media_type="application/pdf",
             headers={
-                "Content-Disposition": f"attachment; filename={filename}",
+                "Content-Disposition": f'attachment; filename="{filename}"',
+                "Content-Length": str(len(pdf_bytes)),
+                "Access-Control-Expose-Headers": "Content-Disposition, X-Audit-Block-Index, X-Block-Hash",
                 "X-Audit-Block-Index": str(req.audit_block.index),
                 "X-Block-Hash": req.audit_block.block_hash
             }
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"PDF generation failed: {str(e)}")
+
+
+@app.get("/api/download-pdf/{encounter_id}", tags=["PDF"])
+async def download_pdf_by_encounter(encounter_id: str) -> Response:
+    """
+    Direct GET download for handover PDF by encounter ID.
+    Enables native browser downloads, direct links, and preview without memory blob issues.
+    """
+    block = ledger_instance.get_block_by_encounter_id(encounter_id)
+    if not block:
+        raise HTTPException(status_code=404, detail=f"No record found for encounter: {encounter_id}")
+
+    try:
+        raw_clinical = block.payload.get("clinical_data", {})
+        clinical_data = ClinicalExtraction.model_validate(raw_clinical)
+        call_sign = clinical_data.patient.call_sign_or_unit or "Medic 1"
+
+        pdf_bytes = await asyncio.to_thread(
+            generate_handover_pdf,
+            clinical_data=clinical_data,
+            audit_block=block,
+            encounter_id=encounter_id,
+            call_sign=call_sign
+        )
+
+        filename = f"handover_{encounter_id}_{block.index}.pdf"
+
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"',
+                "Content-Length": str(len(pdf_bytes)),
+                "Access-Control-Expose-Headers": "Content-Disposition, X-Audit-Block-Index, X-Block-Hash",
+                "X-Audit-Block-Index": str(block.index),
+                "X-Block-Hash": block.block_hash
+            }
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"PDF compilation failed: {str(e)}")
 
 
 # ============================================================================

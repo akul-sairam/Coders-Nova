@@ -10,10 +10,12 @@ import {
   AlertTriangle,
   FileCheck,
   CheckCircle2,
-  FileText
+  FileText,
+  FileDown,
+  RefreshCw
 } from 'lucide-react';
 
-export default function Timeline({ data, fhirBundle, auditBlock, onDownloadPDF }) {
+export default function Timeline({ data, fhirBundle, auditBlock, onDownloadPDF, downloadingPDF, pdfDownloaded }) {
 
   if (!data) {
     return (
@@ -56,12 +58,37 @@ export default function Timeline({ data, fhirBundle, auditBlock, onDownloadPDF }
           </div>
         </div>
 
-        {/* Clinical Sheet Indicator */}
+        {/* Clinical Sheet Indicator & Quick Download Action */}
         <div className="flex items-center gap-2">
           <span className="neo-badge bg-[#ffe600] text-black px-3.5 py-1.5 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-neo-sm">
             <FileText className="w-3.5 h-3.5" />
             Clinical Sheet
           </span>
+          {onDownloadPDF && (
+            <button
+              onClick={onDownloadPDF}
+              disabled={downloadingPDF}
+              className="neo-btn bg-[#00e599] hover:bg-[#05d58f] text-black px-3.5 py-1.5 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-neo-sm cursor-pointer disabled:opacity-60 transition-all"
+              title="Download verified clinical handover PDF"
+            >
+              {downloadingPDF ? (
+                <>
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin stroke-[2.5]" />
+                  <span>Preparing...</span>
+                </>
+              ) : pdfDownloaded ? (
+                <>
+                  <CheckCircle2 className="w-3.5 h-3.5 stroke-[3]" />
+                  <span>Downloaded!</span>
+                </>
+              ) : (
+                <>
+                  <FileDown className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>Download PDF</span>
+                </>
+              )}
+            </button>
+          )}
         </div>
       </div>
 

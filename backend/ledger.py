@@ -262,6 +262,32 @@ class CryptographicLedger:
         finally:
             conn.close()
 
+    def get_block_by_encounter_id(self, encounter_id: str) -> Optional[AuditBlock]:
+        """
+        Retrieves a sealed block by encounter identifier.
+        """
+        conn = self._get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT * FROM audit_blocks WHERE encounter_id = ? ORDER BY block_index DESC LIMIT 1;
+            """, (encounter_id,))
+            row = cursor.fetchone()
+            if not row:
+                return None
+
+            return AuditBlock(
+                index=row["block_index"],
+                timestamp=row["timestamp"],
+                encounter_id=row["encounter_id"],
+                payload_hash=row["payload_hash"],
+                prev_hash=row["prev_hash"],
+                block_hash=row["block_hash"],
+                payload=json.loads(row["payload_json"])
+            )
+        finally:
+            conn.close()
+
     def verify_integrity(self) -> LedgerVerificationResult:
         """
         Audits entire cryptographic chain from Block 0 to N.
