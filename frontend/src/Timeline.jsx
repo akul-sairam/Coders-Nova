@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Heart,
   Activity,
@@ -8,17 +8,12 @@ import {
   User,
   ShieldCheck,
   AlertTriangle,
-  Code,
   FileCheck,
   CheckCircle2,
-  Copy,
-  Check,
   FileText
 } from 'lucide-react';
 
 export default function Timeline({ data, fhirBundle, auditBlock, onDownloadPDF }) {
-  const [activeTab, setActiveTab] = useState('clinical'); // 'clinical' | 'fhir' | 'audit'
-  const [copied, setCopied] = useState(false);
 
   if (!data) {
     return (
@@ -35,12 +30,6 @@ export default function Timeline({ data, fhirBundle, auditBlock, onDownloadPDF }
   }
 
   const { patient, vitals, medications, procedures, narrative_summary, flags_or_allergies } = data;
-
-  const handleCopyJSON = (jsonObj) => {
-    navigator.clipboard.writeText(JSON.stringify(jsonObj, null, 2));
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   return (
     <div className="neo-box bg-white dark:bg-[#151c28] border-2.5 border-[#121826] dark:border-[#2d3748] p-6 transition-colors duration-200">
@@ -67,49 +56,19 @@ export default function Timeline({ data, fhirBundle, auditBlock, onDownloadPDF }
           </div>
         </div>
 
-        {/* Tactile Folder Tabs */}
+        {/* Clinical Sheet Indicator */}
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setActiveTab('clinical')}
-            className={`neo-btn px-4 py-2 text-xs font-extrabold uppercase tracking-wider flex items-center gap-1.5 ${
-              activeTab === 'clinical'
-                ? 'bg-[#ffe600] text-black shadow-neo translate-x-[-1px] translate-y-[-1px]'
-                : 'bg-white dark:bg-[#1f2838] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
-            }`}
-          >
+          <span className="neo-badge bg-[#ffe600] text-black px-3.5 py-1.5 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-neo-sm">
             <FileText className="w-3.5 h-3.5" />
             Clinical Sheet
-          </button>
-          <button
-            onClick={() => setActiveTab('fhir')}
-            className={`neo-btn px-4 py-2 text-xs font-extrabold uppercase tracking-wider flex items-center gap-1.5 ${
-              activeTab === 'fhir'
-                ? 'bg-[#00d2ff] text-black shadow-neo translate-x-[-1px] translate-y-[-1px]'
-                : 'bg-white dark:bg-[#1f2838] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
-            }`}
-          >
-            <Code className="w-3.5 h-3.5" />
-            EHR Transfer Data
-          </button>
-          <button
-            onClick={() => setActiveTab('audit')}
-            className={`neo-btn px-4 py-2 text-xs font-extrabold uppercase tracking-wider flex items-center gap-1.5 ${
-              activeTab === 'audit'
-                ? 'bg-[#00e599] text-black shadow-neo translate-x-[-1px] translate-y-[-1px]'
-                : 'bg-white dark:bg-[#1f2838] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
-            }`}
-          >
-            <ShieldCheck className="w-3.5 h-3.5" />
-            Security Seal
-          </button>
+          </span>
         </div>
       </div>
 
       {/* ------------------------------------------------------------------ */}
-      {/* TAB 1: CLINICAL SHEET                                              */}
+      {/* CLINICAL HANDOVER SHEET                                            */}
       {/* ------------------------------------------------------------------ */}
-      {activeTab === 'clinical' && (
-        <div className="space-y-6 pt-5">
+      <div className="space-y-6 pt-5">
           {/* Patient Demographics & Dispatch Banner */}
           <div className="p-4 rounded-xl bg-[#faf8f2] dark:bg-[#0f141d] border-2 border-[#121826] dark:border-[#2d3748] shadow-neo-sm grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div>
@@ -379,91 +338,6 @@ export default function Timeline({ data, fhirBundle, auditBlock, onDownloadPDF }
             </div>
           )}
         </div>
-      )}
-
-      {/* ------------------------------------------------------------------ */}
-      {/* TAB 2: EHR / FHIR DATA TRANSFER                                    */}
-      {/* ------------------------------------------------------------------ */}
-      {activeTab === 'fhir' && (
-        <div className="pt-5 space-y-4">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
-              HL7 FHIR Document Bundle for hospital emergency department integration.
-            </p>
-            <button
-              onClick={() => handleCopyJSON(fhirBundle)}
-              className="neo-btn px-4 py-2 bg-[#ffe600] text-black text-xs font-extrabold flex items-center gap-1.5"
-            >
-              {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-              {copied ? 'Copied Data' : 'Copy Transfer Data'}
-            </button>
-          </div>
-
-          <pre className="p-4 rounded-xl bg-[#121826] border-2.5 border-[#121826] dark:border-[#2d3748] shadow-neo text-[12px] font-mono text-[#00d2ff] max-h-96 overflow-y-auto leading-normal selection:bg-[#ffe600] selection:text-black">
-            {JSON.stringify(fhirBundle, null, 2)}
-          </pre>
-        </div>
-      )}
-
-      {/* ------------------------------------------------------------------ */}
-      {/* TAB 3: INCIDENT SECURITY & AUDIT SEAL                              */}
-      {/* ------------------------------------------------------------------ */}
-      {activeTab === 'audit' && (
-        <div className="pt-5 space-y-4">
-          {auditBlock ? (
-            <div className="neo-box p-6 bg-[#faf8f2] dark:bg-[#0f141d] border-2 border-[#121826] dark:border-[#2d3748] space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b-2 border-[#121826] dark:border-[#2d3748]">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-[#00e599] border-2 border-black flex items-center justify-center">
-                    <ShieldCheck className="w-5 h-5 text-black stroke-[2.5]" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-black text-[#121826] dark:text-white">
-                      Incident Verification Certificate
-                    </h3>
-                    <p className="text-[11px] font-bold text-slate-600 dark:text-slate-400">
-                      Encounter Reference: {auditBlock.encounter_id}
-                    </p>
-                  </div>
-                </div>
-                <span className="neo-badge bg-[#00e599] text-black px-3 py-1 text-xs">
-                  TAMPER-EVIDENT SEALED
-                </span>
-              </div>
-
-              <div className="space-y-3 font-mono text-xs">
-                <div className="p-3 rounded-lg bg-white dark:bg-[#1a2232] border-2 border-[#121826] dark:border-[#2d3748]">
-                  <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase block">
-                    INCIDENT DIGITAL SIGNATURE
-                  </span>
-                  <p className="text-black dark:text-[#00d2ff] font-extrabold break-all select-all mt-0.5">
-                    {auditBlock.block_hash}
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 pt-2 text-xs">
-                  <div>
-                    <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase block">TIMESTAMP</span>
-                    <span className="font-bold text-black dark:text-white">{auditBlock.timestamp}</span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase block">VERIFICATION STATUS</span>
-                    <span className="neo-badge bg-[#00e599] text-black px-2 py-0.5 inline-block mt-0.5">
-                      INTEGRITY CERTIFIED
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-[#ffe600]/30 dark:bg-[#ffe600]/15 border-2 border-[#121826] dark:border-[#2d3748] text-xs font-bold text-slate-800 dark:text-slate-200">
-                <b>Medical-Legal Non-Repudiation:</b> This clinical record is permanently stamped. Any subsequent alteration of medications, dosages, or timestamps invalidates the digital incident seal.
-              </div>
-            </div>
-          ) : (
-            <p className="text-sm font-bold text-slate-600 dark:text-slate-400">Verification seal will be generated once the report is finalized.</p>
-          )}
-        </div>
-      )}
     </div>
   );
 }
