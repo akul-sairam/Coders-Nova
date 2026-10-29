@@ -12,7 +12,11 @@ import {
   FileCheck,
   CheckCircle2,
   Copy,
-  Check
+  Check,
+  FileText,
+  BadgeAlert,
+  Hash,
+  ExternalLink
 } from 'lucide-react';
 
 export default function Timeline({ data, fhirBundle, auditBlock, onDownloadPDF }) {
@@ -21,11 +25,13 @@ export default function Timeline({ data, fhirBundle, auditBlock, onDownloadPDF }
 
   if (!data) {
     return (
-      <div className="glass-panel rounded-2xl p-8 text-center text-slate-400">
-        <Activity className="w-12 h-12 text-slate-600 mx-auto mb-3 animate-pulse" />
-        <h3 className="text-lg font-medium text-slate-300">No Clinical Data Extracted Yet</h3>
-        <p className="text-sm mt-1 max-w-md mx-auto">
-          Record spoken on-scene notes or select a clinical preset above to run the offline Whisper and SLM pipeline.
+      <div className="neo-box p-8 text-center bg-white">
+        <div className="w-16 h-16 rounded-2xl bg-[#ffe600] border-2.5 border-[#121826] shadow-neo flex items-center justify-center mx-auto mb-4">
+          <Activity className="w-8 h-8 text-[#121826] stroke-[2.5]" />
+        </div>
+        <h3 className="text-xl font-extrabold text-[#121826] tracking-tight">No Clinical Record Extracted Yet</h3>
+        <p className="text-sm font-medium text-slate-600 mt-1.5 max-w-md mx-auto">
+          Press the high-visibility <b className="text-black bg-[#ffe600] px-1.5 py-0.5 rounded border border-black">RECORD ON-SCENE</b> button or select an emergency clinical preset above to run the offline Whisper and SLM pipeline.
         </p>
       </div>
     );
@@ -40,44 +46,49 @@ export default function Timeline({ data, fhirBundle, auditBlock, onDownloadPDF }
   };
 
   return (
-    <div className="glass-panel rounded-2xl p-6 transition-all duration-300">
-      {/* Top Header & Tab Controls */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-slate-800">
+    <div className="neo-box bg-white p-6 transition-all duration-200">
+      {/* ------------------------------------------------------------------ */}
+      {/* TOP HEADER & TACTILE FOLDER TABS                                   */}
+      {/* ------------------------------------------------------------------ */}
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-5 border-b-[2.5px] border-[#121826]">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">
-            <FileCheck className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-xl bg-[#00e599] border-2 border-[#121826] shadow-neo-sm flex items-center justify-center text-[#121826]">
+            <FileCheck className="w-5 h-5 stroke-[2.5]" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-slate-100 flex items-center gap-2">
-              Structured Clinical Record
-              <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl font-extrabold text-[#121826] tracking-tight">
+                Structured Clinical Record
+              </h2>
+              <span className="neo-badge bg-[#ffe600] text-black px-2 py-0.5">
                 GBNF $O(1)$ Validated
               </span>
-            </h2>
-            <p className="text-xs text-slate-400">
-              Auto-normalized to RxNorm & SNOMED CT standards | Edge Sealed
+            </div>
+            <p className="text-xs font-semibold text-slate-600 mt-0.5">
+              Mapped to RxNorm & SNOMED CT standards • Chained to Tamper-Evident Ledger
             </p>
           </div>
         </div>
 
-        {/* View Switcher Tabs */}
-        <div className="flex items-center gap-1.5 p-1 bg-slate-900/90 rounded-xl border border-slate-800 text-xs">
+        {/* Tactile Folder Tabs */}
+        <div className="flex items-center gap-2">
           <button
             onClick={() => setActiveTab('clinical')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
+            className={`neo-btn px-4 py-2 text-xs font-extrabold uppercase tracking-wider flex items-center gap-1.5 ${
               activeTab === 'clinical'
-                ? 'bg-cyan-500 text-black shadow-md font-semibold'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-[#ffe600] text-black shadow-neo translate-x-[-1px] translate-y-[-1px]'
+                : 'bg-white text-slate-700 hover:bg-slate-100'
             }`}
           >
-            Clinical View
+            <FileText className="w-3.5 h-3.5" />
+            Clinical Sheet
           </button>
           <button
             onClick={() => setActiveTab('fhir')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
+            className={`neo-btn px-4 py-2 text-xs font-extrabold uppercase tracking-wider flex items-center gap-1.5 ${
               activeTab === 'fhir'
-                ? 'bg-cyan-500 text-black shadow-md font-semibold'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-[#00d2ff] text-black shadow-neo translate-x-[-1px] translate-y-[-1px]'
+                : 'bg-white text-slate-700 hover:bg-slate-100'
             }`}
           >
             <Code className="w-3.5 h-3.5" />
@@ -85,58 +96,72 @@ export default function Timeline({ data, fhirBundle, auditBlock, onDownloadPDF }
           </button>
           <button
             onClick={() => setActiveTab('audit')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
+            className={`neo-btn px-4 py-2 text-xs font-extrabold uppercase tracking-wider flex items-center gap-1.5 ${
               activeTab === 'audit'
-                ? 'bg-cyan-500 text-black shadow-md font-semibold'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-[#00e599] text-black shadow-neo translate-x-[-1px] translate-y-[-1px]'
+                : 'bg-white text-slate-700 hover:bg-slate-100'
             }`}
           >
             <ShieldCheck className="w-3.5 h-3.5" />
-            Audit Seal
+            Audit Stamp
           </button>
         </div>
       </div>
 
-      {/* TAB 1: CLINICAL VIEW */}
+      {/* ------------------------------------------------------------------ */}
+      {/* TAB 1: CLINICAL SHEET (NEOBRUTALIST TRIAGE HANDOVER)               */}
+      {/* ------------------------------------------------------------------ */}
       {activeTab === 'clinical' && (
         <div className="space-y-6 pt-5">
-          {/* Patient Demographics Banner */}
-          <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {/* Patient Demographics & Dispatch Banner */}
+          <div className="p-4 rounded-xl bg-[#faf8f2] border-2 border-[#121826] shadow-neo-sm grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div>
-              <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider block">Age & Gender</span>
-              <p className="text-sm font-semibold text-slate-100 mt-0.5">
-                {patient?.age ? `${patient.age} yrs` : 'Unknown'} • {patient?.gender || 'Unspecified'}
+              <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest block font-mono">
+                PATIENT DEMOGRAPHICS
+              </span>
+              <p className="text-base font-extrabold text-[#121826] mt-0.5">
+                {patient?.age ? `${patient.age} Y/O` : 'Adult'} • {patient?.gender || 'Unknown'}
               </p>
             </div>
             <div>
-              <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider block">Chief Complaint</span>
-              <p className="text-sm font-semibold text-amber-400 mt-0.5 truncate">
+              <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest block font-mono">
+                CHIEF COMPLAINT
+              </span>
+              <span className="inline-block mt-0.5 text-xs font-extrabold px-2 py-0.5 bg-[#ffe600] border-1.5 border-[#121826] rounded text-black truncate max-w-full">
                 {patient?.chief_complaint || 'Acute Emergency'}
-              </p>
+              </span>
             </div>
             <div>
-              <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider block">Unit Call Sign</span>
-              <p className="text-sm font-semibold text-cyan-400 mt-0.5">
+              <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest block font-mono">
+                RESPONDING UNIT
+              </span>
+              <span className="inline-block mt-0.5 text-xs font-extrabold px-2 py-0.5 bg-[#00d2ff] border-1.5 border-[#121826] rounded text-black font-mono">
                 {patient?.call_sign_or_unit || 'Medic 1'}
-              </p>
+              </span>
             </div>
             <div>
-              <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider block">Encounter ID</span>
-              <p className="text-xs font-mono font-medium text-slate-300 mt-0.5 truncate">
-                {patient?.incident_id || 'ENC-EDGE-PENDING'}
+              <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest block font-mono">
+                ENCOUNTER ID
+              </span>
+              <p className="text-xs font-mono font-bold text-slate-800 mt-1 truncate">
+                {patient?.incident_id || 'ENC-EDGE-LOCAL'}
               </p>
             </div>
           </div>
 
           {/* Critical Warnings / Allergies */}
           {flags_or_allergies && flags_or_allergies.length > 0 && (
-            <div className="p-3.5 rounded-xl bg-red-950/40 border border-red-500/30 flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+            <div className="p-4 rounded-xl bg-[#ff4d4d]/10 border-2.5 border-[#ff4d4d] shadow-neo-sm flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-[#ff4d4d] text-white border-2 border-black shrink-0">
+                <AlertTriangle className="w-5 h-5 stroke-[2.5]" />
+              </div>
               <div>
-                <h4 className="text-xs font-bold text-red-300 uppercase tracking-wider">Critical Clinical Alerts</h4>
-                <div className="flex flex-wrap gap-2 mt-1">
+                <h4 className="text-xs font-black text-[#121826] uppercase tracking-wider">
+                  CRITICAL CLINICAL ALERTS & ALLERGIES
+                </h4>
+                <div className="flex flex-wrap gap-2 mt-1.5">
                   {flags_or_allergies.map((flag, idx) => (
-                    <span key={idx} className="text-xs text-red-200 font-medium px-2 py-0.5 rounded bg-red-900/60 border border-red-700/50">
+                    <span key={idx} className="neo-badge bg-[#ff4d4d] text-white px-2.5 py-1">
                       {flag}
                     </span>
                   ))}
@@ -148,104 +173,140 @@ export default function Timeline({ data, fhirBundle, auditBlock, onDownloadPDF }
           {/* Physiological Vital Signs HUD */}
           {vitals && vitals.length > 0 && (
             <div>
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-3">
-                <Heart className="w-4 h-4 text-rose-400" />
-                Physiological Vitals
-              </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5">
-                {vitals[0].bp_systolic && vitals[0].bp_diastolic && (
-                  <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-center">
-                    <span className="text-[10px] text-slate-400 uppercase font-mono block">Blood Pressure</span>
-                    <p className="text-base font-bold text-cyan-400 mt-0.5 font-mono">
-                      {vitals[0].bp_systolic}/{vitals[0].bp_diastolic}
-                      <span className="text-[10px] text-slate-500 ml-1">mmHg</span>
-                    </p>
-                  </div>
-                )}
-                {vitals[0].heart_rate && (
-                  <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-center">
-                    <span className="text-[10px] text-slate-400 uppercase font-mono block">Heart Rate</span>
-                    <p className="text-base font-bold text-rose-400 mt-0.5 font-mono">
-                      {vitals[0].heart_rate}
-                      <span className="text-[10px] text-slate-500 ml-1">bpm</span>
-                    </p>
-                  </div>
-                )}
-                {vitals[0].spo2 && (
-                  <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-center">
-                    <span className="text-[10px] text-slate-400 uppercase font-mono block">SpO2 Oxygen</span>
-                    <p className="text-base font-bold text-emerald-400 mt-0.5 font-mono">
-                      {vitals[0].spo2}%
-                    </p>
-                  </div>
-                )}
-                {vitals[0].respiratory_rate && (
-                  <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-center">
-                    <span className="text-[10px] text-slate-400 uppercase font-mono block">Respirations</span>
-                    <p className="text-base font-bold text-amber-400 mt-0.5 font-mono">
-                      {vitals[0].respiratory_rate}
-                      <span className="text-[10px] text-slate-500 ml-1">/min</span>
-                    </p>
-                  </div>
-                )}
-                {vitals[0].gcs && (
-                  <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-center">
-                    <span className="text-[10px] text-slate-400 uppercase font-mono block">Glasgow GCS</span>
-                    <p className="text-base font-bold text-purple-400 mt-0.5 font-mono">
-                      {vitals[0].gcs}
-                      <span className="text-[10px] text-slate-500 ml-1">/15</span>
-                    </p>
-                  </div>
-                )}
-                {vitals[0].blood_glucose && (
-                  <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-center">
-                    <span className="text-[10px] text-slate-400 uppercase font-mono block">Blood Glucose</span>
-                    <p className="text-base font-bold text-blue-400 mt-0.5 font-mono">
-                      {vitals[0].blood_glucose}
-                      <span className="text-[10px] text-slate-500 ml-1">mg/dL</span>
-                    </p>
-                  </div>
-                )}
+              <div className="flex items-center justify-between mb-2.5">
+                <h3 className="text-xs font-black text-[#121826] uppercase tracking-wider flex items-center gap-1.5">
+                  <Heart className="w-4 h-4 text-[#ff4d4d] stroke-[2.5]" />
+                  PHYSIOLOGICAL VITAL SIGNS
+                </h3>
+                <span className="text-[10px] font-mono font-bold text-slate-500 uppercase">
+                  MONITOR ACQUISITION: {vitals[0].timestamp ? vitals[0].timestamp.substring(11, 19) + ' UTC' : 'ON SCENE'}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                {/* Blood Pressure */}
+                <div className="p-3 rounded-xl bg-[#ffe600]/30 border-2 border-[#121826] shadow-neo-sm text-center">
+                  <span className="text-[10px] font-extrabold text-slate-600 uppercase font-mono block">
+                    BLOOD PRESSURE
+                  </span>
+                  <p className="text-xl font-black text-[#121826] mt-0.5 font-mono">
+                    {vitals[0].bp_systolic && vitals[0].bp_diastolic ? `${vitals[0].bp_systolic}/${vitals[0].bp_diastolic}` : '—'}
+                  </p>
+                  <span className="text-[9px] font-bold text-slate-500 uppercase">mmHg</span>
+                </div>
+
+                {/* Heart Rate */}
+                <div className="p-3 rounded-xl bg-[#ff4d4d]/20 border-2 border-[#121826] shadow-neo-sm text-center">
+                  <span className="text-[10px] font-extrabold text-slate-600 uppercase font-mono block">
+                    HEART RATE
+                  </span>
+                  <p className="text-xl font-black text-[#121826] mt-0.5 font-mono">
+                    {vitals[0].heart_rate || '—'}
+                  </p>
+                  <span className="text-[9px] font-bold text-slate-500 uppercase">BPM</span>
+                </div>
+
+                {/* SpO2 */}
+                <div className="p-3 rounded-xl bg-[#00e599]/30 border-2 border-[#121826] shadow-neo-sm text-center">
+                  <span className="text-[10px] font-extrabold text-slate-600 uppercase font-mono block">
+                    SPO2 OXYGEN
+                  </span>
+                  <p className="text-xl font-black text-[#121826] mt-0.5 font-mono">
+                    {vitals[0].spo2 ? `${vitals[0].spo2}%` : '—'}
+                  </p>
+                  <span className="text-[9px] font-bold text-slate-500 uppercase">PULSE OX</span>
+                </div>
+
+                {/* Respirations */}
+                <div className="p-3 rounded-xl bg-[#ff914d]/20 border-2 border-[#121826] shadow-neo-sm text-center">
+                  <span className="text-[10px] font-extrabold text-slate-600 uppercase font-mono block">
+                    RESPIRATIONS
+                  </span>
+                  <p className="text-xl font-black text-[#121826] mt-0.5 font-mono">
+                    {vitals[0].respiratory_rate || '—'}
+                  </p>
+                  <span className="text-[9px] font-bold text-slate-500 uppercase">BREATHS/MIN</span>
+                </div>
+
+                {/* GCS */}
+                <div className="p-3 rounded-xl bg-[#cc88ff]/25 border-2 border-[#121826] shadow-neo-sm text-center">
+                  <span className="text-[10px] font-extrabold text-slate-600 uppercase font-mono block">
+                    GLASGOW GCS
+                  </span>
+                  <p className="text-xl font-black text-[#121826] mt-0.5 font-mono">
+                    {vitals[0].gcs ? `${vitals[0].gcs}/15` : '—'}
+                  </p>
+                  <span className="text-[9px] font-bold text-slate-500 uppercase">COMA SCORE</span>
+                </div>
+
+                {/* Glucose */}
+                <div className="p-3 rounded-xl bg-[#00d2ff]/20 border-2 border-[#121826] shadow-neo-sm text-center">
+                  <span className="text-[10px] font-extrabold text-slate-600 uppercase font-mono block">
+                    BLOOD GLUCOSE
+                  </span>
+                  <p className="text-xl font-black text-[#121826] mt-0.5 font-mono">
+                    {vitals[0].blood_glucose || '—'}
+                  </p>
+                  <span className="text-[9px] font-bold text-slate-500 uppercase">mg/dL</span>
+                </div>
               </div>
             </div>
           )}
 
           {/* Administered Medications */}
           <div>
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-3">
-              <Pill className="w-4 h-4 text-cyan-400" />
-              Medications & Infusions ({medications?.length || 0})
-            </h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xs font-black text-[#121826] uppercase tracking-wider flex items-center gap-1.5">
+                <Pill className="w-4 h-4 text-[#00d2ff] stroke-[2.5]" />
+                MEDICATIONS & FLUIDS ADMINISTERED ({medications?.length || 0})
+              </h3>
+              <span className="neo-badge bg-white px-2 py-0.5 text-[10px]">
+                RxNorm Standardized
+              </span>
+            </div>
+
             {medications && medications.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 {medications.map((m, idx) => (
-                  <div key={idx} className="p-4 rounded-xl bg-slate-900/70 border border-slate-800 hover:border-cyan-500/30 transition-all flex flex-col justify-between">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <h4 className="text-sm font-bold text-slate-100 flex items-center gap-2">
+                  <div
+                    key={idx}
+                    className="p-4 rounded-xl bg-white border-2 border-[#121826] shadow-neo-sm hover:shadow-neo transition-all flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <h4 className="text-base font-extrabold text-[#121826] tracking-tight">
                           {m.name}
-                          {m.raw_term && (
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700 font-mono">
-                              verbatim: "{m.raw_term}"
-                            </span>
-                          )}
                         </h4>
-                        <p className="text-xs text-cyan-400 font-semibold mt-1">
-                          {m.dose ? `${m.dose} ${m.unit || ''}` : 'Standard Dose'} • {m.route || 'IV Push'}
-                        </p>
+                        <span className="neo-badge bg-[#00d2ff] text-black px-2 py-0.5 shrink-0">
+                          RxNorm
+                        </span>
                       </div>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-950/60 text-cyan-300 border border-cyan-800/50 shrink-0 font-medium">
-                        RxNorm
-                      </span>
+
+                      {/* Dosage & Route Badges */}
+                      <div className="flex flex-wrap items-center gap-2 my-2">
+                        <span className="neo-badge bg-[#ffe600] text-black px-2 py-0.5 font-mono">
+                          {m.dose ? `${m.dose} ${m.unit || ''}` : 'Standard Dose'}
+                        </span>
+                        <span className="neo-badge bg-slate-100 text-slate-800 px-2 py-0.5 font-mono">
+                          {m.route || 'IV Push'}
+                        </span>
+                      </div>
+
+                      {/* Verbatim Spoken Term Tag */}
+                      {m.raw_term && (
+                        <div className="text-[11px] font-mono text-slate-600 bg-[#faf8f2] px-2 py-1 rounded border border-slate-300 mt-2">
+                          <b className="text-black">Verbatim Spoken:</b> "{m.raw_term}"
+                        </div>
+                      )}
                     </div>
 
-                    <div className="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
-                      <span className="flex items-center gap-1 font-mono">
-                        <Clock className="w-3 h-3 text-slate-500" />
-                        {m.relative_time_phrase || (m.timestamp ? m.timestamp.split('T')[1]?.substring(0, 5) : 'On scene')}
+                    <div className="mt-3 pt-2.5 border-t-2 border-slate-100 flex items-center justify-between text-xs font-mono font-bold text-slate-600">
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5 text-black stroke-[2.5]" />
+                        {m.relative_time_phrase || (m.timestamp ? m.timestamp.substring(11, 16) : 'On scene')}
                       </span>
                       {m.timestamp && (
-                        <span className="text-slate-500 text-[10px] font-mono">
+                        <span className="text-[10px] text-slate-500">
                           ISO: {m.timestamp.substring(11, 19)}Z
                         </span>
                       )}
@@ -254,48 +315,60 @@ export default function Timeline({ data, fhirBundle, auditBlock, onDownloadPDF }
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-slate-500 italic p-3 rounded-lg bg-slate-900/40 border border-slate-800/60">
-                No medications administered.
+              <p className="text-xs font-bold text-slate-500 italic p-3.5 rounded-xl bg-[#faf8f2] border-2 border-dashed border-slate-300">
+                No medications administered during this encounter.
               </p>
             )}
           </div>
 
           {/* Procedures & Interventions */}
           <div>
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-3">
-              <Syringe className="w-4 h-4 text-emerald-400" />
-              Procedures & Interventions ({procedures?.length || 0})
-            </h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xs font-black text-[#121826] uppercase tracking-wider flex items-center gap-1.5">
+                <Syringe className="w-4 h-4 text-[#00e599] stroke-[2.5]" />
+                PROCEDURES & INTERVENTIONS ({procedures?.length || 0})
+              </h3>
+              <span className="neo-badge bg-white px-2 py-0.5 text-[10px]">
+                SNOMED CT Coded
+              </span>
+            </div>
+
             {procedures && procedures.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 {procedures.map((p, idx) => (
-                  <div key={idx} className="p-4 rounded-xl bg-slate-900/70 border border-slate-800 hover:border-emerald-500/30 transition-all flex flex-col justify-between">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <h4 className="text-sm font-bold text-slate-100 flex items-center gap-2">
+                  <div
+                    key={idx}
+                    className="p-4 rounded-xl bg-white border-2 border-[#121826] shadow-neo-sm hover:shadow-neo transition-all flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex items-start justify-between gap-2 mb-1.5">
+                        <h4 className="text-base font-extrabold text-[#121826] tracking-tight flex items-center gap-1.5">
                           {p.name}
-                          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                          <CheckCircle2 className="w-4 h-4 text-[#00e599] stroke-[3]" />
                         </h4>
-                        <p className="text-xs text-slate-300 mt-1">
-                          <b>Site / Device:</b> {p.site || 'Standard anatomic placement'}
+                        <span className="neo-badge bg-[#00e599] text-black px-2 py-0.5 shrink-0">
+                          SNOMED CT
+                        </span>
+                      </div>
+
+                      <div className="space-y-1 text-xs text-slate-700 my-2">
+                        <p>
+                          <b className="text-black">Anatomical Site / Device:</b> {p.site || 'Standard anatomic placement'}
                         </p>
                         {p.details && (
-                          <p className="text-xs text-slate-400 mt-0.5">
-                            {p.details}
+                          <p className="text-slate-600">
+                            <b className="text-black">Details:</b> {p.details}
                           </p>
                         )}
                       </div>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-950/60 text-emerald-300 border border-emerald-800/50 shrink-0 font-medium">
-                        SNOMED CT
-                      </span>
                     </div>
 
-                    <div className="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
-                      <span className="flex items-center gap-1 font-mono">
-                        <Clock className="w-3 h-3 text-slate-500" />
+                    <div className="mt-3 pt-2.5 border-t-2 border-slate-100 flex items-center justify-between text-xs font-mono font-bold text-slate-600">
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5 text-black stroke-[2.5]" />
                         {p.relative_time_phrase || 'En route / Scene'}
                       </span>
-                      <span className="text-[10px] text-emerald-400 font-semibold uppercase">
+                      <span className="neo-badge bg-[#00e599] text-black px-1.5 py-0.5 text-[10px]">
                         {p.success ? 'Confirmed' : 'Attempted'}
                       </span>
                     </div>
@@ -303,7 +376,7 @@ export default function Timeline({ data, fhirBundle, auditBlock, onDownloadPDF }
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-slate-500 italic p-3 rounded-lg bg-slate-900/40 border border-slate-800/60">
+              <p className="text-xs font-bold text-slate-500 italic p-3.5 rounded-xl bg-[#faf8f2] border-2 border-dashed border-slate-300">
                 No invasive procedures logged.
               </p>
             )}
@@ -312,10 +385,10 @@ export default function Timeline({ data, fhirBundle, auditBlock, onDownloadPDF }
           {/* Narrative Summary */}
           {narrative_summary && (
             <div>
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-                Clinical Narrative Summary
+              <h3 className="text-xs font-black text-[#121826] uppercase tracking-wider mb-2">
+                OBJECTIVE CLINICAL NARRATIVE SUMMARY
               </h3>
-              <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-300 leading-relaxed font-sans">
+              <div className="p-4 rounded-xl bg-[#faf8f2] border-2 border-[#121826] shadow-neo-sm text-xs font-medium text-slate-800 leading-relaxed font-sans">
                 {narrative_summary}
               </div>
             </div>
@@ -323,85 +396,104 @@ export default function Timeline({ data, fhirBundle, auditBlock, onDownloadPDF }
         </div>
       )}
 
-      {/* TAB 2: FHIR-LITE JSON BUNDLE */}
+      {/* ------------------------------------------------------------------ */}
+      {/* TAB 2: FHIR-LITE JSON BUNDLE                                       */}
+      {/* ------------------------------------------------------------------ */}
       {activeTab === 'fhir' && (
         <div className="pt-5 space-y-4">
           <div className="flex items-center justify-between">
-            <p className="text-xs text-slate-400">
+            <p className="text-xs font-bold text-slate-700">
               HL7 FHIR R4 Document Bundle ready for interoperable Hospital ED / EHR ingress.
             </p>
             <button
               onClick={() => handleCopyJSON(fhirBundle)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 border border-slate-700 transition-all"
+              className="neo-btn px-4 py-2 bg-[#ffe600] text-black text-xs font-extrabold flex items-center gap-1.5"
             >
-              {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+              {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
               {copied ? 'Copied Bundle' : 'Copy FHIR JSON'}
             </button>
           </div>
 
-          <pre className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-[11px] font-mono text-cyan-300 max-h-96 overflow-y-auto leading-tight selection:bg-cyan-900">
+          <pre className="p-4 rounded-xl bg-[#121826] border-2.5 border-[#121826] shadow-neo text-[12px] font-mono text-[#00d2ff] max-h-96 overflow-y-auto leading-normal selection:bg-[#ffe600] selection:text-black">
             {JSON.stringify(fhirBundle, null, 2)}
           </pre>
         </div>
       )}
 
-      {/* TAB 3: CRYPTOGRAPHIC AUDIT SEAL */}
+      {/* ------------------------------------------------------------------ */}
+      {/* TAB 3: CRYPTOGRAPHIC AUDIT SEAL                                    */}
+      {/* ------------------------------------------------------------------ */}
       {activeTab === 'audit' && (
         <div className="pt-5 space-y-4">
           {auditBlock ? (
-            <div className="p-5 rounded-xl bg-slate-950 border border-slate-800 space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+            <div className="neo-box p-6 bg-[#faf8f2] space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b-2 border-[#121826]">
                 <div className="flex items-center gap-2">
-                  <ShieldCheck className="w-5 h-5 text-emerald-400" />
-                  <span className="text-sm font-bold text-slate-100">
-                    Cryptographic Block Height #{auditBlock.index}
-                  </span>
+                  <div className="w-8 h-8 rounded-lg bg-[#00e599] border-2 border-black flex items-center justify-center">
+                    <ShieldCheck className="w-5 h-5 text-black stroke-[2.5]" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-[#121826]">
+                      Cryptographic Ledger Block Height #{auditBlock.index}
+                    </h3>
+                    <p className="text-[11px] font-bold text-slate-600">
+                      Encounter Reference: {auditBlock.encounter_id}
+                    </p>
+                  </div>
                 </div>
-                <span className="text-xs font-mono text-emerald-400 bg-emerald-950/60 px-2.5 py-1 rounded border border-emerald-800">
-                  IMMUTABLE SHA-256
+                <span className="neo-badge bg-[#00e599] text-black px-3 py-1 text-xs">
+                  IMMUTABLE SHA-256 SEAL
                 </span>
               </div>
 
               <div className="space-y-3 font-mono text-xs">
-                <div>
-                  <span className="text-slate-500 block text-[10px] uppercase">Block Seal Hash (SHA-256)</span>
-                  <p className="text-cyan-400 break-all select-all font-semibold mt-0.5">
+                <div className="p-3 rounded-lg bg-white border-2 border-[#121826]">
+                  <span className="text-[10px] font-black text-slate-500 uppercase block">
+                    BLOCK SEAL HASH (SHA-256)
+                  </span>
+                  <p className="text-black font-extrabold break-all select-all mt-0.5">
                     {auditBlock.block_hash}
                   </p>
                 </div>
 
-                <div>
-                  <span className="text-slate-500 block text-[10px] uppercase">Payload Canonical Hash</span>
-                  <p className="text-slate-300 break-all select-all mt-0.5">
+                <div className="p-3 rounded-lg bg-white border-2 border-[#121826]">
+                  <span className="text-[10px] font-black text-slate-500 uppercase block">
+                    PAYLOAD CANONICAL DATA HASH
+                  </span>
+                  <p className="text-slate-800 font-bold break-all select-all mt-0.5">
                     {auditBlock.payload_hash}
                   </p>
                 </div>
 
-                <div>
-                  <span className="text-slate-500 block text-[10px] uppercase">Previous Block Hash (Chained)</span>
-                  <p className="text-slate-400 break-all select-all mt-0.5">
+                <div className="p-3 rounded-lg bg-white border-2 border-[#121826]">
+                  <span className="text-[10px] font-black text-slate-500 uppercase block">
+                    PREVIOUS BLOCK HASH (CHAIN CONTINUITY)
+                  </span>
+                  <p className="text-slate-700 font-bold break-all select-all mt-0.5">
                     {auditBlock.prev_hash}
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 pt-2 border-t border-slate-800/80 text-[11px]">
+                <div className="grid grid-cols-2 gap-4 pt-2 text-xs">
                   <div>
-                    <span className="text-slate-500 block text-[10px] uppercase">Sealed At (UTC)</span>
-                    <span className="text-slate-200">{auditBlock.timestamp}</span>
+                    <span className="text-[10px] font-black text-slate-500 uppercase block">SEAL TIMESTAMP (UTC)</span>
+                    <span className="font-bold text-black">{auditBlock.timestamp}</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 block text-[10px] uppercase">Encounter Reference</span>
-                    <span className="text-slate-200">{auditBlock.encounter_id}</span>
+                    <span className="text-[10px] font-black text-slate-500 uppercase block">LEDGER STATUS</span>
+                    <span className="neo-badge bg-[#00e599] text-black px-2 py-0.5 inline-block mt-0.5">
+                      VERIFIED & SEALED
+                    </span>
                   </div>
                 </div>
               </div>
 
-              <div className="p-3 rounded-lg bg-emerald-950/30 border border-emerald-800/40 text-xs text-emerald-300">
-                <b>Tamper-Evident Guarantee:</b> Modifying any medication, procedure, or timestamp in this encounter invalidates the SHA-256 block hash and breaks the cryptographic ledger chain.
+              <div className="p-3.5 rounded-xl bg-[#ffe600]/30 border-2 border-[#121826] text-xs font-bold text-slate-800">
+                <b>Tamper-Evident Medical-Legal Guarantee:</b> This handover document is permanently pinned to the offline SQLite ledger. Altering any drug, dose, or procedure invalidates the SHA-256 block hash and immediately breaks the mathematical chain continuity.
               </div>
             </div>
           ) : (
-            <p className="text-sm text-slate-400">Audit seal will be displayed once encounter is finalized.</p>
+            <p className="text-sm font-bold text-slate-600">Audit seal will appear once the encounter is processed.</p>
           )}
         </div>
       )}

@@ -4,66 +4,122 @@
 
 @layer base {
   body {
-    background-color: #070b14;
-    color: #e2e8f0;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #faf8f2;
+    color: #121826;
+    font-family: 'Space Grotesk', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: -0.02em;
   }
 }
 
-/* Custom Tactical Medical HUD Glows & Badges */
-.glass-panel {
-  background: rgba(15, 23, 42, 0.75);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(56, 189, 248, 0.15);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+/* -------------------------------------------------------------------------- */
+/* NEOBRUTALISM CORE UTILITIES                                                */
+/* -------------------------------------------------------------------------- */
+
+.neo-box {
+  background-color: #ffffff;
+  border: 2.5px solid #121826;
+  box-shadow: 4px 4px 0px 0px #121826;
+  border-radius: 12px;
 }
 
-.glass-panel-danger {
-  background: rgba(26, 13, 17, 0.8);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(239, 68, 68, 0.25);
-  box-shadow: 0 8px 32px 0 rgba(239, 68, 68, 0.15);
+.neo-box-yellow {
+  background-color: #ffe600;
+  border: 2.5px solid #121826;
+  box-shadow: 4px 4px 0px 0px #121826;
+  border-radius: 12px;
 }
 
-.glass-panel-success {
-  background: rgba(10, 29, 22, 0.8);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(16, 185, 129, 0.25);
-  box-shadow: 0 8px 32px 0 rgba(16, 185, 129, 0.15);
+.neo-box-green {
+  background-color: #00e599;
+  border: 2.5px solid #121826;
+  box-shadow: 4px 4px 0px 0px #121826;
+  border-radius: 12px;
 }
 
-/* Smooth custom scrollbars */
+.neo-box-red {
+  background-color: #ff4d4d;
+  border: 2.5px solid #121826;
+  box-shadow: 4px 4px 0px 0px #121826;
+  border-radius: 12px;
+}
+
+.neo-box-cyan {
+  background-color: #00d2ff;
+  border: 2.5px solid #121826;
+  box-shadow: 4px 4px 0px 0px #121826;
+  border-radius: 12px;
+}
+
+.neo-box-purple {
+  background-color: #cc88ff;
+  border: 2.5px solid #121826;
+  box-shadow: 4px 4px 0px 0px #121826;
+  border-radius: 12px;
+}
+
+/* Tactile Push Buttons with Mechanical Action */
+.neo-btn {
+  border: 2.5px solid #121826;
+  box-shadow: 3.5px 3.5px 0px 0px #121826;
+  border-radius: 10px;
+  font-weight: 700;
+  transition: all 0.1s ease-in-out;
+  cursor: pointer;
+}
+
+.neo-btn:hover {
+  transform: translate(1.5px, 1.5px);
+  box-shadow: 2px 2px 0px 0px #121826;
+}
+
+.neo-btn:active {
+  transform: translate(3.5px, 3.5px);
+  box-shadow: 0px 0px 0px 0px #121826;
+}
+
+/* Crisp Badge Stamps */
+.neo-badge {
+  border: 2px solid #121826;
+  box-shadow: 2px 2px 0px 0px #121826;
+  border-radius: 6px;
+  font-weight: 800;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Segmented LED Volume/VAD Meter for EMS Radios */
+.led-segment {
+  height: 10px;
+  border: 1.5px solid #121826;
+  border-radius: 2px;
+  transition: background-color 0.05s ease;
+}
+
+/* Physical Paper Grid Pattern */
+.bg-grid-dots {
+  background-image: radial-gradient(#121826 1px, transparent 1px);
+  background-size: 20px 20px;
+  opacity: 0.07;
+}
+
+/* Custom High-Contrast Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #090d16;
+  background: #f1ede3;
+  border-left: 2px solid #121826;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
-  border-radius: 3px;
+  background: #121826;
+  border-radius: 0px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #0284c7;
-}
-
-/* Pulse animation for recording */
-@keyframes pulse-ring {
-  0% {
-    transform: scale(0.95);
-    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
-  }
-  70% {
-    transform: scale(1.05);
-    box-shadow: 0 0 0 16px rgba(239, 68, 68, 0);
-  }
-  100% {
-    transform: scale(0.95);
-    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
-  }
-}
-
-.recording-pulse {
-  animation: pulse-ring 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+  background: #ffe600;
 }

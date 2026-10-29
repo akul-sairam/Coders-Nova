@@ -1,0 +1,125 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #faf8f2;
+    color: #121826;
+    font-family: 'Space Grotesk', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: -0.02em;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* NEOBRUTALISM CORE UTILITIES                                                */
+/* -------------------------------------------------------------------------- */
+
+.neo-box {
+  background-color: #ffffff;
+  border: 2.5px solid #121826;
+  box-shadow: 4px 4px 0px 0px #121826;
+  border-radius: 12px;
+}
+
+.neo-box-yellow {
+  background-color: #ffe600;
+  border: 2.5px solid #121826;
+  box-shadow: 4px 4px 0px 0px #121826;
+  border-radius: 12px;
+}
+
+.neo-box-green {
+  background-color: #00e599;
+  border: 2.5px solid #121826;
+  box-shadow: 4px 4px 0px 0px #121826;
+  border-radius: 12px;
+}
+
+.neo-box-red {
+  background-color: #ff4d4d;
+  border: 2.5px solid #121826;
+  box-shadow: 4px 4px 0px 0px #121826;
+  border-radius: 12px;
+}
+
+.neo-box-cyan {
+  background-color: #00d2ff;
+  border: 2.5px solid #121826;
+  box-shadow: 4px 4px 0px 0px #121826;
+  border-radius: 12px;
+}
+
+.neo-box-purple {
+  background-color: #cc88ff;
+  border: 2.5px solid #121826;
+  box-shadow: 4px 4px 0px 0px #121826;
+  border-radius: 12px;
+}
+
+/* Tactile Push Buttons with Mechanical Action */
+.neo-btn {
+  border: 2.5px solid #121826;
+  box-shadow: 3.5px 3.5px 0px 0px #121826;
+  border-radius: 10px;
+  font-weight: 700;
+  transition: all 0.1s ease-in-out;
+  cursor: pointer;
+}
+
+.neo-btn:hover {
+  transform: translate(1.5px, 1.5px);
+  box-shadow: 2px 2px 0px 0px #121826;
+}
+
+.neo-btn:active {
+  transform: translate(3.5px, 3.5px);
+  box-shadow: 0px 0px 0px 0px #121826;
+}
+
+/* Crisp Badge Stamps */
+.neo-badge {
+  border: 2px solid #121826;
+  box-shadow: 2px 2px 0px 0px #121826;
+  border-radius: 6px;
+  font-weight: 800;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Segmented LED Volume/VAD Meter for EMS Radios */
+.led-segment {
+  height: 10px;
+  border: 1.5px solid #121826;
+  border-radius: 2px;
+  transition: background-color 0.05s ease;
+}
+
+/* Physical Paper Grid Pattern */
+.bg-grid-dots {
+  background-image: radial-gradient(#121826 1px, transparent 1px);
+  background-size: 20px 20px;
+  opacity: 0.07;
+}
+
+/* Custom High-Contrast Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1ede3;
+  border-left: 2px solid #121826;
+}
+::-webkit-scrollbar-thumb {
+  background: #121826;
+  border-radius: 0px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #ffe600;
+}

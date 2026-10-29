@@ -7,20 +7,30 @@ export default {
   theme: {
     extend: {
       colors: {
-        ems: {
-          dark: "#0b0f19",
-          card: "#111827",
-          border: "#1f293d",
-          accent: "#0ea5e9",
-          red: "#ef4444",
-          amber: "#f59e0b",
-          green: "#10b981",
-          cyan: "#06b6d4",
-          muted: "#94a3b8"
+        neo: {
+          bg: "#faf8f2",       // Natural warm off-white canvas
+          card: "#ffffff",     // Stark white card
+          black: "#121826",    // Deep rich brutalist black
+          yellow: "#ffe600",   // EMS High-vis Safety Yellow
+          red: "#ff4d4d",      // Triage Emergency Red
+          orange: "#ff914d",   // Caution / Fire Orange
+          green: "#00e599",    // Safe / Verified Mint Green
+          cyan: "#00d2ff",     // Medical Cyan / Airway
+          purple: "#cc88ff",   // Neuro / GCS Lilac
+          blue: "#3b82f6",     // Diagnostic Blue
+          muted: "#64748b",    // Slate secondary
+          line: "#1e293b",     // Border stroke
         }
       },
+      boxShadow: {
+        'neo-sm': '2px 2px 0px 0px #121826',
+        'neo': '4px 4px 0px 0px #121826',
+        'neo-lg': '6px 6px 0px 0px #121826',
+        'neo-xl': '8px 8px 0px 0px #121826',
+        'neo-white': '4px 4px 0px 0px #ffffff',
+      },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'Space Grotesk', 'system-ui', 'sans-serif'],
         mono: ['JetBrains Mono', 'Fira Code', 'monospace']
       }
     },

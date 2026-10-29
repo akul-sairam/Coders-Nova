@@ -16,7 +16,9 @@ import {
   Volume2,
   Lock,
   CheckCircle2,
-  X
+  X,
+  Zap,
+  ArrowRight
 } from 'lucide-react';
 
 import {
@@ -30,36 +32,36 @@ import {
 
 import Timeline from './Timeline';
 
-// Standard Clinical Scenarios for Rapid Field/Hackathon Demos
+// Real-World Clinical EMS Presets (High-visibility triage scenarios)
 const CLINICAL_PRESETS = [
   {
     label: "Acute STEMI / Chest Pain",
     badge: "Cardiology",
-    badgeColor: "bg-rose-500/10 text-rose-400 border-rose-500/20",
+    badgeBg: "bg-[#ffe600]",
     text: "Medic 4 on scene. 65-year-old male with severe crushing chest pain radiating to left arm and diaphoresis. Administered 324 mg aspirin orally and 0.4 sublingual nitro 5 mins ago. Placed 18 gauge IV in left AC, 12-lead ECG completed showing anterior STEMI. Started normal saline wide open. Vitals: BP 140/90, HR 88, SpO2 96%, GCS 15. Penicillin allergy noted on medic alert bracelet."
   },
   {
     label: "ACLS Cardiac Arrest",
     badge: "Resuscitation",
-    badgeColor: "bg-red-500/10 text-red-400 border-red-500/20",
+    badgeBg: "bg-[#ff4d4d] text-white",
     text: "Medic 12 on scene. 72-year-old female in witnessed cardiac arrest. Immediate CPR initiated, bagged with BVM. Placed IO in right proximal tibia, administered 1 mg epi IV push 2 mins ago and 300 mg amio. Defibrillated at 200 Joules with return of spontaneous circulation. Vitals: BP 90/60, HR 54, SpO2 89%, GCS 3."
   },
   {
     label: "Severe Asthma / CPAP",
     badge: "Respiratory",
-    badgeColor: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+    badgeBg: "bg-[#00d2ff]",
     text: "Rescue 7 on scene. 28-year-old female presenting with severe respiratory distress, tripod positioning, audible expiratory wheezes. Administered 2.5 mg albuterol via nebulizer 4 mins ago and placed on CPAP at 10 cmH2O. Started 20g IV in right forearm. Vitals: BP 124/82, HR 118, RR 32, SpO2 88% on room air, GCS 15."
   },
   {
     label: "Opioid Overdose Reversal",
     badge: "Toxicology",
-    badgeColor: "bg-purple-500/10 text-purple-400 border-purple-500/20",
+    badgeBg: "bg-[#cc88ff]",
     text: "Medic 3 on scene. 35-year-old male found unresponsive with pinpoint pupils and agonal respirations. Administered 2 mg narcan intranasally 3 mins ago. Bag-valve-mask ventilations provided with 15L O2. Placed 18g IV left forearm. Patient regaining consciousness. Vitals: BP 110/70, HR 64, RR 8 increasing to 14, SpO2 91% improving to 98%, GCS 6 improving to 13."
   }
 ];
 
 export default function App() {
-  // State
+  // Application State
   const [health, setHealth] = useState(null);
   const [recording, setRecording] = useState(false);
   const [recordDuration, setRecordDuration] = useState(0);
@@ -67,18 +69,18 @@ export default function App() {
   const [processingStage, setProcessingStage] = useState('');
   const [noteText, setNoteText] = useState('');
   const [callSign, setCallSign] = useState('Medic 4');
-  
-  // Clinical output state
+
+  // Clinical Response
   const [clinicalResponse, setClinicalResponse] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
 
-  // Ledger verification modal
+  // Ledger Verification Modal
   const [showLedgerModal, setShowLedgerModal] = useState(false);
   const [ledgerBlocks, setLedgerBlocks] = useState([]);
   const [verificationResult, setVerificationResult] = useState(null);
   const [verifyingLedger, setVerifyingLedger] = useState(false);
 
-  // Audio recording refs
+  // Audio Recording Refs
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const timerIntervalRef = useRef(null);
@@ -87,7 +89,6 @@ export default function App() {
   const [audioLevel, setAudioLevel] = useState(0);
   const animFrameRef = useRef(null);
 
-  // Initial load: Fetch health telemetry
   useEffect(() => {
     loadHealth();
   }, []);
@@ -97,12 +98,12 @@ export default function App() {
       const h = await fetchHealth();
       setHealth(h);
     } catch (e) {
-      console.warn("Backend not reachable yet:", e);
+      console.warn("Backend telemetry pending:", e);
     }
   };
 
   // -------------------------------------------------------------------------
-  // AUDIO RECORDING LOGIC (Browser Web Audio & MediaRecorder)
+  // AUDIO RECORDING (Browser Web Audio & MediaRecorder)
   // -------------------------------------------------------------------------
   const startRecording = async () => {
     setErrorMsg(null);
@@ -119,7 +120,7 @@ export default function App() {
         }
       });
 
-      // Setup audio analyzer for live waveform pulsation
+      // Segmented LED Audio Level Analyzer
       const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       const analyser = audioCtx.createAnalyser();
       const source = audioCtx.createMediaStreamSource(stream);
@@ -164,7 +165,7 @@ export default function App() {
 
     } catch (err) {
       console.error("Microphone access error:", err);
-      setErrorMsg("Microphone access denied or unsupported in this browser. You can type notes or use the emergency presets below.");
+      setErrorMsg("Microphone input unavailable. You can type notes or click any clinical preset to run the full pipeline.");
     }
   };
 
@@ -179,7 +180,7 @@ export default function App() {
 
   const handleProcessAudioBlob = async (blob) => {
     setProcessing(true);
-    setProcessingStage('Ingesting Audio (Zero-Copy) • INT8 Whisper ASR with Silero VAD...');
+    setProcessingStage('Transcribing audio via faster-whisper INT8 (Silero VAD active)...');
     setErrorMsg(null);
 
     try {
@@ -188,7 +189,7 @@ export default function App() {
       setNoteText(resp.transcript);
       await loadHealth();
     } catch (err) {
-      setErrorMsg(err.message || 'Error processing speech audio.');
+      setErrorMsg(err.message || 'Error processing audio notes.');
     } finally {
       setProcessing(false);
       setProcessingStage('');
@@ -206,7 +207,7 @@ export default function App() {
     }
 
     setProcessing(true);
-    setProcessingStage('Running Local SLM with GBNF JSON Grammar Constraints...');
+    setProcessingStage('Executing GBNF constrained SLM extraction & normalizing slang...');
     setErrorMsg(null);
 
     try {
@@ -227,7 +228,7 @@ export default function App() {
   };
 
   // -------------------------------------------------------------------------
-  // PDF GENERATION & LEDGER INSPECTION
+  // PDF GENERATION & LEDGER
   // -------------------------------------------------------------------------
   const handleDownloadPDF = async () => {
     if (!clinicalResponse) return;
@@ -254,7 +255,7 @@ export default function App() {
       setLedgerBlocks(history);
       setVerificationResult(verification);
     } catch (e) {
-      setErrorMsg("Failed to load ledger: " + e.message);
+      setErrorMsg("Failed to load audit ledger: " + e.message);
     } finally {
       setVerifyingLedger(false);
     }
@@ -266,197 +267,210 @@ export default function App() {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
+  // Calculate segmented LED bars for audio level (12 segments)
+  const numSegments = 12;
+  const activeSegments = Math.round((audioLevel / 100) * numSegments);
+
   return (
-    <div className="min-h-screen bg-[#070b14] text-slate-100 flex flex-col">
+    <div className="min-h-screen bg-[#faf8f2] text-[#121826] flex flex-col font-sans">
       {/* ------------------------------------------------------------------ */}
-      {/* TOP EMERGENCY HUD HEADER */}
+      {/* NEOBRUTALIST TOP NAVIGATION & TELEMETRY HUD                        */}
       {/* ------------------------------------------------------------------ */}
-      <header className="border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md sticky top-0 z-40 px-4 py-3">
+      <header className="border-b-[2.5px] border-[#121826] bg-white sticky top-0 z-40 px-4 py-3 shadow-neo-sm">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+          {/* Logo & Brand */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 text-black">
-              <Activity className="w-6 h-6 stroke-[2.5]" />
+            <div className="w-11 h-11 rounded-xl bg-[#ffe600] border-2.5 border-[#121826] shadow-neo-sm flex items-center justify-center text-[#121826]">
+              <Activity className="w-6 h-6 stroke-[3]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-base font-extrabold tracking-tight text-white flex items-center gap-1.5">
+                <h1 className="text-xl font-black tracking-tight text-[#121826] flex items-center gap-2">
                   EDGE EMS AI
-                  <span className="text-cyan-400 font-mono text-xs px-2 py-0.5 rounded bg-cyan-950/80 border border-cyan-800/60">
-                    OFFLINE KERNEL
-                  </span>
                 </h1>
+                <span className="neo-badge bg-[#ffe600] text-black px-2 py-0.5">
+                  OFFLINE KERNEL
+                </span>
+                <span className="neo-badge bg-[#00e599] text-black px-2 py-0.5 hidden sm:inline-block">
+                  ZERO CLOUD
+                </span>
               </div>
-              <p className="text-[11px] text-slate-400">
-                Voice-to-Structured Clinical Note Generator • Zero Cloud Dependencies
+              <p className="text-xs font-bold text-slate-600">
+                Voice-to-Structured Clinical Handover • Edge-Deployed Field Scribe
               </p>
             </div>
           </div>
 
-          {/* Real-time Hardware / Edge Status HUD */}
-          <div className="flex flex-wrap items-center gap-2.5 text-xs font-mono">
-            <div className="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 flex items-center gap-2">
-              <Cpu className="w-3.5 h-3.5 text-cyan-400" />
-              <span className="text-slate-400">CPU SIMD:</span>
-              <span className="text-slate-200 font-semibold">{health?.cpu_threads || '11'} Cores</span>
+          {/* Hardware & Cryptographic Status Chips */}
+          <div className="flex flex-wrap items-center gap-2 text-xs font-mono font-bold">
+            <div className="neo-badge bg-white px-3 py-1.5 flex items-center gap-1.5 text-slate-800">
+              <Cpu className="w-3.5 h-3.5 text-[#121826] stroke-[2.5]" />
+              <span>CPU: {health?.cpu_threads || '11'} CORES</span>
             </div>
 
-            <div className="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 flex items-center gap-2">
-              <Radio className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="text-slate-400">Whisper:</span>
-              <span className="text-emerald-400 font-semibold">INT8 + Silero VAD</span>
+            <div className="neo-badge bg-[#00d2ff] text-black px-3 py-1.5 flex items-center gap-1.5">
+              <Radio className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>WHISPER INT8</span>
             </div>
 
-            <div className="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 flex items-center gap-2">
-              <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-              <span className="text-slate-400">SLM:</span>
-              <span className="text-purple-400 font-semibold">GBNF Grammar</span>
+            <div className="neo-badge bg-[#cc88ff] text-black px-3 py-1.5 flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>GBNF SLM</span>
             </div>
 
             <button
               onClick={openLedgerModal}
-              className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-emerald-500/30 flex items-center gap-2 transition-all cursor-pointer group"
-              title="Inspect SHA-256 Ledger"
+              className="neo-btn bg-[#00e599] text-black px-3 py-1.5 flex items-center gap-1.5"
+              title="Inspect SHA-256 Cryptographic Ledger"
             >
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition-transform" />
-              <span className="text-slate-400">Ledger:</span>
-              <span className="text-emerald-400 font-semibold">
-                Block #{health?.ledger_block_height || '1'}
-              </span>
+              <ShieldCheck className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>LEDGER: BLOCK #{health?.ledger_block_height || '1'}</span>
             </button>
           </div>
         </div>
       </header>
 
       {/* ------------------------------------------------------------------ */}
-      {/* MAIN CONTENT AREA */}
+      {/* MAIN CONTENT WORKSPACE                                             */}
       {/* ------------------------------------------------------------------ */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
-        {/* Error Alert if any */}
+        {/* Error Alert Box */}
         {errorMsg && (
-          <div className="p-4 rounded-xl bg-red-950/60 border border-red-500/40 text-red-200 flex items-start justify-between gap-3 text-sm">
+          <div className="neo-box-red p-4 text-white flex items-start justify-between gap-3 text-sm">
             <div className="flex items-start gap-2.5">
-              <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+              <AlertCircle className="w-5 h-5 text-white shrink-0 mt-0.5 stroke-[2.5]" />
               <div>
-                <b className="font-semibold text-red-300">Notice:</b> {errorMsg}
+                <b className="font-extrabold uppercase tracking-wider block text-xs">System Notice</b>
+                <span className="font-medium text-xs text-white">{errorMsg}</span>
               </div>
             </div>
-            <button onClick={() => setErrorMsg(null)} className="text-red-400 hover:text-red-200">
-              <X className="w-4 h-4" />
+            <button
+              onClick={() => setErrorMsg(null)}
+              className="neo-btn bg-white text-black p-1 hover:bg-slate-200"
+            >
+              <X className="w-4 h-4 stroke-[2.5]" />
             </button>
           </div>
         )}
 
         {/* ---------------------------------------------------------------- */}
-        {/* SECTION 1: FIELD AUDIO INGESTION & TACTICAL DICTATION */}
+        {/* SECTION 1: TACTICAL VOICE INGESTION & PARAMEDIC DICTATION        */}
         {/* ---------------------------------------------------------------- */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* LEFT: Live Audio Recorder & Controller (5 cols) */}
-          <div className="lg:col-span-5 glass-panel rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden">
-            {/* Background glow on recording */}
-            {recording && (
-              <div className="absolute inset-0 bg-red-500/5 pointer-events-none transition-opacity animate-pulse" />
-            )}
-
+          {/* LEFT: Physical Tactical Audio Recorder (5 cols) */}
+          <div className="lg:col-span-5 neo-box p-6 flex flex-col justify-between bg-white">
             <div>
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-xs font-bold uppercase tracking-wider text-cyan-400 font-mono flex items-center gap-1.5">
-                  <Volume2 className="w-4 h-4" />
-                  Tactical Audio Ingestion
+              <div className="flex items-center justify-between mb-3 pb-3 border-b-2 border-slate-200">
+                <span className="text-xs font-black uppercase tracking-wider text-[#121826] font-mono flex items-center gap-1.5">
+                  <Volume2 className="w-4 h-4 stroke-[2.5]" />
+                  TACTICAL AUDIO INGESTION
                 </span>
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-slate-400 font-mono">Unit:</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-mono font-bold text-slate-600">UNIT:</span>
                   <input
                     type="text"
                     value={callSign}
                     onChange={(e) => setCallSign(e.target.value)}
-                    className="w-20 px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-xs font-mono text-cyan-300 text-center focus:outline-none focus:border-cyan-500"
-                    placeholder="Medic 1"
+                    className="w-24 px-2 py-0.5 rounded border-2 border-black font-mono font-bold text-xs bg-[#ffe600] text-black text-center focus:outline-none shadow-neo-sm"
+                    placeholder="Medic 4"
                   />
                 </div>
               </div>
 
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Speaks directly into the rugged terminal. 16kHz audio is routed in-memory (zero copy) to INT8 faster-whisper with Silero VAD dropping dead silence.
+              <p className="text-xs font-medium text-slate-600 leading-relaxed">
+                Capture verbal on-scene notes. Spoken audio is zero-copy streamed directly in RAM to INT8 Whisper with Silero VAD dropping dead silence.
               </p>
 
-              {/* Big On-Scene Record Button */}
-              <div className="my-8 flex flex-col items-center justify-center">
+              {/* Physical Push Button Controller */}
+              <div className="my-7 flex flex-col items-center justify-center">
                 {!recording ? (
                   <button
                     onClick={startRecording}
                     disabled={processing}
-                    className="relative group cursor-pointer focus:outline-none"
+                    className="neo-btn group bg-[#ffe600] hover:bg-[#fde047] p-6 rounded-full w-32 h-32 flex flex-col items-center justify-center shadow-neo-lg hover:shadow-neo transition-all cursor-pointer disabled:opacity-50"
                   >
-                    <div className="w-28 h-28 rounded-full bg-gradient-to-tr from-cyan-600 to-blue-500 group-hover:from-cyan-500 group-hover:to-blue-400 flex items-center justify-center shadow-xl shadow-cyan-500/25 group-hover:shadow-cyan-500/40 transition-all duration-300 transform group-hover:scale-105">
-                      <Mic className="w-12 h-12 text-black stroke-[2.5]" />
-                    </div>
-                    <span className="absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs font-bold text-slate-300 tracking-wider uppercase group-hover:text-cyan-400 transition-colors">
-                      Record On-Scene
+                    <Mic className="w-12 h-12 text-[#121826] stroke-[2.5] group-hover:scale-110 transition-transform" />
+                    <span className="text-[10px] font-black uppercase tracking-wider mt-1 text-[#121826]">
+                      Record
                     </span>
                   </button>
                 ) : (
                   <button
                     onClick={stopRecording}
-                    className="relative cursor-pointer focus:outline-none recording-pulse"
+                    className="neo-btn bg-[#ff4d4d] text-white p-6 rounded-full w-32 h-32 flex flex-col items-center justify-center shadow-neo-lg animate-bounce transition-all cursor-pointer"
                   >
-                    <div className="w-28 h-28 rounded-full bg-gradient-to-tr from-red-600 to-rose-500 flex items-center justify-center shadow-xl shadow-red-500/40 transform scale-105">
-                      <Square className="w-10 h-10 text-white fill-white" />
-                    </div>
-                    <span className="absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs font-bold text-red-400 tracking-wider uppercase font-mono">
-                      Stop & Process ({formatTimer(recordDuration)})
+                    <Square className="w-10 h-10 fill-white text-white" />
+                    <span className="text-[10px] font-black uppercase tracking-wider mt-1 text-white font-mono">
+                      Stop ({formatTimer(recordDuration)})
                     </span>
                   </button>
                 )}
+                <span className="text-xs font-black uppercase tracking-wider text-slate-800 mt-3 font-mono">
+                  {recording ? `● LIVE RECORDING: ${formatTimer(recordDuration)}` : 'READY TO RECORD ON-SCENE'}
+                </span>
               </div>
 
-              {/* Live Audio Level Meter */}
-              {recording && (
-                <div className="mt-8 space-y-1.5">
-                  <div className="flex justify-between text-[10px] font-mono text-slate-400">
-                    <span>SILERO VAD LEVEL</span>
-                    <span className="text-red-400">{audioLevel}%</span>
-                  </div>
-                  <div className="w-full h-2 rounded-full bg-slate-900 overflow-hidden border border-slate-800">
-                    <div
-                      className="h-full bg-gradient-to-r from-cyan-500 via-amber-500 to-red-500 transition-all duration-75"
-                      style={{ width: `${audioLevel}%` }}
-                    />
-                  </div>
+              {/* Segmented Tactical LED VAD Meter (Motorola radio style) */}
+              <div className="mt-4 p-3 rounded-xl bg-[#faf8f2] border-2 border-[#121826] shadow-neo-sm space-y-1.5">
+                <div className="flex justify-between items-center text-[10px] font-mono font-black text-slate-700 uppercase">
+                  <span>SILERO VAD AUDIO DETECTOR</span>
+                  <span className="neo-badge bg-white px-1.5 py-0.2">
+                    {recording ? `${audioLevel}% SPEECH` : 'STANDBY'}
+                  </span>
                 </div>
-              )}
+                <div className="grid grid-cols-12 gap-1 pt-1">
+                  {Array.from({ length: numSegments }).map((_, i) => {
+                    const isActive = recording && i < activeSegments;
+                    let color = 'bg-slate-200';
+                    if (isActive) {
+                      if (i < 7) color = 'bg-[#00e599]';
+                      else if (i < 10) color = 'bg-[#ffe600]';
+                      else color = 'bg-[#ff4d4d]';
+                    }
+                    return (
+                      <div
+                        key={i}
+                        className={`led-segment ${color}`}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
             </div>
 
-            {/* Processing Stage Indicator */}
+            {/* Processing Stage Badge */}
             {processing && (
-              <div className="mt-6 p-3 rounded-xl bg-cyan-950/50 border border-cyan-500/30 text-cyan-300 flex items-center gap-3 text-xs animate-pulse">
-                <RefreshCw className="w-4 h-4 animate-spin text-cyan-400 shrink-0" />
-                <span className="font-mono">{processingStage}</span>
+              <div className="mt-4 p-3 rounded-xl bg-[#00d2ff] border-2 border-[#121826] shadow-neo-sm text-black flex items-center gap-2.5 text-xs font-bold animate-pulse font-mono">
+                <RefreshCw className="w-4 h-4 animate-spin shrink-0 stroke-[3]" />
+                <span>{processingStage}</span>
               </div>
             )}
 
-            <div className="pt-4 mt-6 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500 font-mono">
-              <span>ZERO DISK I/O: RAM-STREAMED</span>
+            <div className="pt-3 mt-4 border-t-2 border-slate-200 flex items-center justify-between text-[11px] font-mono font-bold text-slate-600">
+              <span className="flex items-center gap-1">
+                <Zap className="w-3.5 h-3.5 text-[#121826]" /> ZERO DISK FLASH WEAR
+              </span>
               <span>CTranslate2 INT8</span>
             </div>
           </div>
 
-          {/* RIGHT: Rapid Presets & Dictation Editor (7 cols) */}
-          <div className="lg:col-span-7 glass-panel rounded-2xl p-6 flex flex-col justify-between">
+          {/* RIGHT: High-Visibility Paramedic Dictation & Rapid Triage Presets (7 cols) */}
+          <div className="lg:col-span-7 neo-box p-6 flex flex-col justify-between bg-white">
             <div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-300 font-mono flex items-center gap-1.5">
-                  <FileText className="w-4 h-4 text-cyan-400" />
-                  Paramedic Dictation Transcript / Field Notes
+              <div className="flex items-center justify-between mb-2.5">
+                <span className="text-xs font-black uppercase tracking-wider text-[#121826] font-mono flex items-center gap-1.5">
+                  <FileText className="w-4 h-4 stroke-[2.5]" />
+                  PARAMEDIC ON-SCENE DICTATION / TRANSCRIPT
                 </span>
-                <span className="text-[11px] text-slate-400 font-mono">
-                  {noteText.length} chars
+                <span className="neo-badge bg-[#faf8f2] px-2 py-0.5 text-[10px]">
+                  {noteText.length} CHARS
                 </span>
               </div>
 
-              {/* Preset Scenarios Buttons */}
+              {/* Triage Scenario Quick-Preset Buttons */}
               <div className="mb-3">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
-                  Quick Field Demo Presets (One-Click Test):
+                <span className="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider block mb-1 font-mono">
+                  RAPID FIELD PRESETS (ONE-CLICK DEMO):
                 </span>
                 <div className="grid grid-cols-2 gap-2">
                   {CLINICAL_PRESETS.map((preset, idx) => (
@@ -464,17 +478,17 @@ export default function App() {
                       key={idx}
                       onClick={() => loadPreset(preset)}
                       disabled={processing}
-                      className="p-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800/90 border border-slate-800 hover:border-cyan-500/40 text-left transition-all cursor-pointer group flex flex-col justify-between"
+                      className="neo-btn p-2.5 bg-white hover:bg-[#faf8f2] text-left flex flex-col justify-between group cursor-pointer"
                     >
                       <div className="flex items-center justify-between gap-1 mb-1">
-                        <span className="text-xs font-semibold text-slate-200 group-hover:text-cyan-400 transition-colors">
+                        <span className="text-xs font-black text-[#121826] group-hover:text-black">
                           {preset.label}
                         </span>
-                        <span className={`text-[9px] px-1.5 py-0.2 rounded border font-mono ${preset.badgeColor}`}>
+                        <span className={`neo-badge text-[9px] px-1.5 py-0.2 ${preset.badgeBg}`}>
                           {preset.badge}
                         </span>
                       </div>
-                      <p className="text-[10px] text-slate-400 line-clamp-1">
+                      <p className="text-[10px] font-medium text-slate-500 line-clamp-1">
                         {preset.text}
                       </p>
                     </button>
@@ -487,32 +501,32 @@ export default function App() {
                 <textarea
                   value={noteText}
                   onChange={(e) => setNoteText(e.target.value)}
-                  placeholder="Paramedic notes will appear here in real-time as spoken, or you can paste / type notes with medical slang (e.g., 'gave 1 mg epi 2 mins ago, 324 mg aspirin orally, started 18g iv in left AC, normal saline wide open, vitals: bp 130/80...')"
+                  placeholder="Spoken words will appear here in real-time, or you can paste / type paramedic field notes with slang (e.g., 'gave 1 mg epi 2 mins ago, 324 mg aspirin orally, started 18g iv in left AC, normal saline wide open, vitals: bp 130/80...')"
                   rows={4}
-                  className="w-full p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-xs text-slate-200 font-mono leading-relaxed placeholder:text-slate-600 focus:outline-none transition-all resize-none"
+                  className="w-full p-3.5 rounded-xl border-2.5 border-[#121826] shadow-neo-sm focus:shadow-neo text-xs font-mono font-medium text-[#121826] bg-[#faf8f2] leading-relaxed placeholder:text-slate-400 focus:outline-none transition-all resize-none"
                 />
               </div>
             </div>
 
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-800/80">
-              <span className="text-[11px] text-slate-400 font-mono flex items-center gap-1">
-                <Lock className="w-3 h-3 text-emerald-400" />
-                GBNF Constrained SLM • RxNorm & SNOMED CT
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3 pt-3 border-t-2 border-slate-200">
+              <span className="text-xs font-mono font-bold text-slate-700 flex items-center gap-1.5">
+                <Lock className="w-3.5 h-3.5 text-[#00e599] stroke-[3]" />
+                GBNF Constrained SLM • Deterministic Parsing
               </span>
               <button
                 onClick={() => handleProcessText()}
                 disabled={processing || !noteText.trim()}
-                className="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-bold text-xs tracking-wide shadow-lg shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 cursor-pointer"
+                className="neo-btn px-5 py-2.5 bg-[#ffe600] hover:bg-[#fde047] text-black text-xs font-black uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-neo disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {processing ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-                Extract & Seal Record
+                {processing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                EXTRACT & SEAL RECORD
               </button>
             </div>
           </div>
         </div>
 
         {/* ---------------------------------------------------------------- */}
-        {/* SECTION 2: STRUCTURED CLINICAL TIMELINE & FHIR VIEWER */}
+        {/* SECTION 2: STRUCTURED CLINICAL RECORD & FHIR VIEWER               */}
         {/* ---------------------------------------------------------------- */}
         <div className="space-y-4">
           <Timeline
@@ -524,23 +538,23 @@ export default function App() {
         </div>
 
         {/* ---------------------------------------------------------------- */}
-        {/* SECTION 3: ACTION BAR & PDF GENERATION */}
+        {/* SECTION 3: FINALIZED HANDOVER ACTION BAR                         */}
         {/* ---------------------------------------------------------------- */}
         {clinicalResponse && (
-          <div className="glass-panel-success rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4">
+          <div className="neo-box-green p-5 flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="p-3 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400">
-                <CheckCircle2 className="w-6 h-6" />
+              <div className="w-12 h-12 rounded-xl bg-white border-2 border-black shadow-neo-sm flex items-center justify-center text-black shrink-0">
+                <CheckCircle2 className="w-7 h-7 stroke-[3]" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <h3 className="text-base font-black text-black flex items-center gap-2">
                   Encounter Finalized & Cryptographically Sealed
-                  <span className="text-xs font-mono font-normal text-emerald-300">
-                    ({clinicalResponse.encounter_id})
+                  <span className="neo-badge bg-white text-black px-2 py-0.5 text-xs font-mono font-bold">
+                    {clinicalResponse.encounter_id}
                   </span>
                 </h3>
-                <p className="text-xs text-slate-300">
-                  Ready for hospital triage handover. Block #{clinicalResponse.audit_block.index} chained in local SQLite.
+                <p className="text-xs font-bold text-slate-900 mt-0.5">
+                  Ready for trauma center handover. Block #{clinicalResponse.audit_block.index} chained in local SQLite ledger.
                 </p>
               </div>
             </div>
@@ -548,15 +562,15 @@ export default function App() {
             <div className="flex items-center gap-3">
               <button
                 onClick={openLedgerModal}
-                className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-200 transition-all flex items-center gap-2 cursor-pointer"
+                className="neo-btn px-4 py-2.5 bg-white text-black text-xs font-black uppercase tracking-wider flex items-center gap-2"
               >
-                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                <ShieldCheck className="w-4 h-4" />
                 Audit Trail
               </button>
 
               <button
                 onClick={handleDownloadPDF}
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black font-extrabold text-xs shadow-lg shadow-emerald-500/25 transition-all flex items-center gap-2 cursor-pointer"
+                className="neo-btn px-5 py-2.5 bg-[#ffe600] text-black text-xs font-black uppercase tracking-wider shadow-neo flex items-center gap-2"
               >
                 <FileDown className="w-4 h-4 stroke-[2.5]" />
                 Download Handover PDF
@@ -566,42 +580,53 @@ export default function App() {
         )}
 
         {/* ---------------------------------------------------------------- */}
-        {/* SECTION 4: HACKATHON EDGE ARCHITECTURE HIGHLIGHT CARD */}
+        {/* SECTION 4: HACKATHON EDGE ARCHITECTURE HIGHLIGHTS                */}
         {/* ---------------------------------------------------------------- */}
-        <div className="glass-panel rounded-2xl p-6">
-          <h3 className="text-xs font-bold text-cyan-400 uppercase tracking-wider font-mono mb-4 flex items-center gap-2">
-            <Layers className="w-4 h-4" />
-            Edge Computing & Hackathon Architecture Highlights
-          </h3>
+        <div className="neo-box p-6 bg-white">
+          <div className="flex items-center justify-between mb-4 pb-2 border-b-2 border-slate-200">
+            <h3 className="text-sm font-black text-[#121826] uppercase tracking-wider font-mono flex items-center gap-2">
+              <Layers className="w-4 h-4 stroke-[2.5]" />
+              Edge Computing & Technical Specifications
+            </h3>
+            <span className="neo-badge bg-[#ffe600] px-2 py-0.5 text-[10px]">
+              NO CLOUD CALLS
+            </span>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-            <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800">
-              <h4 className="font-bold text-slate-200 flex items-center gap-2 mb-1.5">
-                <span className="w-2 h-2 rounded-full bg-cyan-400" />
-                Zero Cloud Dependencies
-              </h4>
-              <p className="text-slate-400 leading-relaxed text-[11px]">
-                Runs 100% offline in disconnected ambulances, aircraft, and rural disaster zones. Eliminates expensive API per-minute costs and HIPAA cloud transmission liabilities.
+            <div className="p-4 rounded-xl bg-[#faf8f2] border-2 border-[#121826] shadow-neo-sm">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="w-3 h-3 rounded-full bg-[#00d2ff] border border-black" />
+                <h4 className="font-black text-[#121826] text-sm">
+                  Zero Cloud Dependencies
+                </h4>
+              </div>
+              <p className="text-slate-600 font-medium leading-relaxed">
+                Runs 100% offline on low-end edge hardware (laptops, rugged field tablets, vehicle terminals). Operates during cellular blackouts, subways, and rural disasters with zero API fees and zero HIPAA cloud exposure.
               </p>
             </div>
 
-            <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800">
-              <h4 className="font-bold text-slate-200 flex items-center gap-2 mb-1.5">
-                <span className="w-2 h-2 rounded-full bg-purple-400" />
-                GBNF Constrained Decoding
-              </h4>
-              <p className="text-slate-400 leading-relaxed text-[11px]">
-                Forces llama-cpp-python logit masking directly from Pydantic schemas. Guarantees 100% syntactically valid JSON with $O(1)$ parsing and zero markdown hallucinations.
+            <div className="p-4 rounded-xl bg-[#faf8f2] border-2 border-[#121826] shadow-neo-sm">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="w-3 h-3 rounded-full bg-[#cc88ff] border border-black" />
+                <h4 className="font-black text-[#121826] text-sm">
+                  GBNF Constrained SLM
+                </h4>
+              </div>
+              <p className="text-slate-600 font-medium leading-relaxed">
+                Uses llama-cpp-python logit masking derived directly from Pydantic schemas via <code className="bg-white px-1 py-0.5 border border-black rounded text-[11px] font-mono">LlamaGrammar.from_json_schema()</code>. Guarantees 100% valid JSON with $O(1)$ parsing and zero markdown fences.
               </p>
             </div>
 
-            <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800">
-              <h4 className="font-bold text-slate-200 flex items-center gap-2 mb-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                Cryptographic Audit Ledger
-              </h4>
-              <p className="text-slate-400 leading-relaxed text-[11px]">
-                SHA-256 blockchain-style chaining on local SQLite. Every medication and vital is pinned; any post-incident tampering immediately breaks the mathematical block seal.
+            <div className="p-4 rounded-xl bg-[#faf8f2] border-2 border-[#121826] shadow-neo-sm">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="w-3 h-3 rounded-full bg-[#00e599] border border-black" />
+                <h4 className="font-black text-[#121826] text-sm">
+                  Cryptographic Audit Chain
+                </h4>
+              </div>
+              <p className="text-slate-600 font-medium leading-relaxed">
+                Embedded SQLite cryptographic ledger chaining every note via SHA-256 block seals. Any post-incident tampering with medications, doses, or timestamps immediately breaks the mathematical block verification.
               </p>
             </div>
           </div>
@@ -609,50 +634,52 @@ export default function App() {
       </main>
 
       {/* ------------------------------------------------------------------ */}
-      {/* LEDGER AUDIT & VERIFICATION MODAL */}
+      {/* CRYPTOGRAPHIC AUDIT LEDGER MODAL                                   */}
       {/* ------------------------------------------------------------------ */}
       {showLedgerModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#0b0f19] border border-slate-800 rounded-2xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
-            <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="neo-box max-w-3xl w-full max-h-[85vh] flex flex-col bg-white overflow-hidden shadow-neo-xl">
+            <div className="p-4 border-b-2.5 border-[#121826] flex items-center justify-between bg-[#ffe600]">
               <div className="flex items-center gap-2.5">
-                <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                <div className="w-8 h-8 rounded-lg bg-black text-[#ffe600] flex items-center justify-center">
+                  <ShieldCheck className="w-5 h-5 stroke-[2.5]" />
+                </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-100">
-                    Local Cryptographic Audit Ledger (SHA-256)
+                  <h3 className="text-base font-black text-black">
+                    Immutable Cryptographic Audit Ledger
                   </h3>
-                  <p className="text-[11px] text-slate-400">
-                    Immutable SQLite Event Ledger • Mathematical Verification
+                  <p className="text-[11px] font-bold text-slate-800">
+                    Local SQLite SHA-256 Cryptographic Chain
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setShowLedgerModal(false)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+                className="neo-btn bg-white text-black p-1 hover:bg-slate-100"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5 stroke-[2.5]" />
               </button>
             </div>
 
-            <div className="p-5 overflow-y-auto space-y-4 flex-1">
-              {/* Verification Result Banner */}
+            <div className="p-5 overflow-y-auto space-y-4 flex-1 bg-[#faf8f2]">
+              {/* Verification Report Banner */}
               {verificationResult && (
-                <div className={`p-4 rounded-xl border flex items-start gap-3 ${
+                <div className={`p-4 rounded-xl border-2 border-black shadow-neo-sm flex items-start gap-3 ${
                   verificationResult.is_valid
-                    ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-200'
-                    : 'bg-red-950/40 border-red-500/40 text-red-200'
+                    ? 'bg-[#00e599]/30 text-black'
+                    : 'bg-[#ff4d4d]/20 text-black'
                 }`}>
-                  <ShieldCheck className={`w-6 h-6 shrink-0 mt-0.5 ${
-                    verificationResult.is_valid ? 'text-emerald-400' : 'text-red-400'
+                  <ShieldCheck className={`w-6 h-6 shrink-0 mt-0.5 stroke-[2.5] ${
+                    verificationResult.is_valid ? 'text-[#121826]' : 'text-[#ff4d4d]'
                   }`} />
                   <div>
-                    <h4 className="text-xs font-bold uppercase tracking-wider">
-                      {verificationResult.is_valid ? 'Cryptographic Integrity Validated' : 'Tampering Detected'}
+                    <h4 className="text-xs font-black uppercase tracking-wider">
+                      {verificationResult.is_valid ? 'CRYPTOGRAPHIC INTEGRITY VALIDATED' : 'TAMPERING DETECTED'}
                     </h4>
-                    <p className="text-xs mt-0.5">
+                    <p className="text-xs font-bold mt-0.5">
                       {verificationResult.message}
                     </p>
-                    <div className="mt-2 text-[10px] font-mono text-slate-400">
+                    <div className="mt-2 text-[10px] font-mono font-bold text-slate-700">
                       Total Blocks: {verificationResult.total_blocks} • Verified At: {verificationResult.verified_at}
                     </div>
                   </div>
@@ -661,28 +688,28 @@ export default function App() {
 
               {/* Block History Table */}
               <div className="space-y-2">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
-                  Sequential Block Records ({ledgerBlocks.length}):
+                <span className="text-xs font-black text-[#121826] uppercase tracking-wider block font-mono">
+                  SEQUENTIAL BLOCK REGISTRY ({ledgerBlocks.length}):
                 </span>
                 <div className="space-y-2">
                   {ledgerBlocks.map((block) => (
                     <div
                       key={block.index}
-                      className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs font-mono space-y-1.5"
+                      className="p-3.5 rounded-xl bg-white border-2 border-[#121826] shadow-neo-sm text-xs font-mono space-y-1.5"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-cyan-400">
-                          Block #{block.index} ({block.encounter_id})
+                        <span className="font-black text-black">
+                          Block #{block.index} • Encounter: {block.encounter_id}
                         </span>
-                        <span className="text-slate-500 text-[10px]">
+                        <span className="neo-badge bg-[#faf8f2] px-1.5 py-0.2 text-[10px]">
                           {block.timestamp}
                         </span>
                       </div>
-                      <div className="text-[11px] text-slate-400 truncate">
-                        <b className="text-slate-500">Seal:</b> <span className="text-slate-300">{block.block_hash}</span>
+                      <div className="text-[11px] text-slate-700 truncate">
+                        <b className="text-black">Block Seal:</b> {block.block_hash}
                       </div>
                       <div className="text-[10px] text-slate-500 truncate">
-                        <b>Prev:</b> {block.prev_hash}
+                        <b>Prev Hash:</b> {block.prev_hash}
                       </div>
                     </div>
                   ))}
@@ -690,10 +717,10 @@ export default function App() {
               </div>
             </div>
 
-            <div className="p-4 border-t border-slate-800 bg-slate-950 flex justify-end">
+            <div className="p-4 border-t-2 border-[#121826] bg-white flex justify-end">
               <button
                 onClick={() => setShowLedgerModal(false)}
-                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 transition-colors cursor-pointer"
+                className="neo-btn px-4 py-2 bg-[#ffe600] text-black text-xs font-black uppercase tracking-wider"
               >
                 Close Audit Inspector
               </button>
@@ -703,10 +730,10 @@ export default function App() {
       )}
 
       {/* ------------------------------------------------------------------ */}
-      {/* FOOTER */}
+      {/* FOOTER                                                             */}
       {/* ------------------------------------------------------------------ */}
-      <footer className="border-t border-slate-800/80 py-4 px-6 text-center text-xs text-slate-500 font-mono">
-        Edge EMS Clinical AI • Low-Power Offline Hardware Architecture • faster-whisper INT8 + llama-cpp-python GBNF
+      <footer className="border-t-[2.5px] border-[#121826] bg-white py-3 px-6 text-center text-xs font-mono font-bold text-slate-700">
+        Edge EMS Clinical AI • Offline Neobrutalist Field Handover • faster-whisper INT8 + llama-cpp-python GBNF
       </footer>
     </div>
   );
