@@ -15,7 +15,11 @@ import {
   Send,
   ClipboardList,
   Sun,
-  Moon
+  Moon,
+  FolderClock,
+  Search,
+  ExternalLink,
+  Eye
 } from 'lucide-react';
 
 import {
@@ -24,6 +28,7 @@ import {
   processClinicalText,
   downloadHandoverPDF,
   fetchLedger,
+  fetchPatientHistory,
   verifyLedgerChain
 } from './api';
 
@@ -58,6 +63,13 @@ export default function App() {
   const [ledgerBlocks, setLedgerBlocks] = useState([]);
   const [verificationResult, setVerificationResult] = useState(null);
   const [verifyingLedger, setVerifyingLedger] = useState(false);
+
+  // Patient History Retrieval State (For Emergency Triage Nurses)
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [patientHistory, setPatientHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [historySearchQuery, setHistorySearchQuery] = useState('');
+  const [downloadingHistoryId, setDownloadingHistoryId] = useState(null);
 
   // Audio Recording Refs
   const mediaRecorderRef = useRef(null);
@@ -263,6 +275,62 @@ export default function App() {
     }
   };
 
+  // -------------------------------------------------------------------------
+  // PATIENT HISTORY RETRIEVAL (MULTI-PATIENT EMERGENCY TRIAGE FOR NURSES)
+  // -------------------------------------------------------------------------
+  const openHistoryModal = async () => {
+    setShowHistoryModal(true);
+    setLoadingHistory(true);
+    try {
+      const history = await fetchPatientHistory(100);
+      setPatientHistory(Array.isArray(history) ? history : []);
+    } catch (err) {
+      setErrorMsg("Failed to load patient history: " + err.message);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  const handleDownloadHistoryPDF = async (patientItem) => {
+    setDownloadingHistoryId(patientItem.encounter_id);
+    try {
+      await downloadHandoverPDF(
+        patientItem.clinical_data,
+        patientItem.audit_block,
+        patientItem.encounter_id,
+        patientItem.patient?.call_sign_or_unit || callSign
+      );
+    } catch (e) {
+      setErrorMsg("Failed to download patient handover PDF: " + (e.message || e));
+    } finally {
+      setDownloadingHistoryId(null);
+    }
+  };
+
+  const handleLoadPatientIntoView = (patientItem) => {
+    setClinicalResponse({
+      success: true,
+      encounter_id: patientItem.encounter_id,
+      transcript: patientItem.narrative_summary || '',
+      clinical_data: patientItem.clinical_data,
+      fhir_bundle: null,
+      audit_block: patientItem.audit_block
+    });
+    setShowHistoryModal(false);
+  };
+
+  const filteredHistory = patientHistory.filter(item => {
+    if (!historySearchQuery.trim()) return true;
+    const q = historySearchQuery.toLowerCase();
+    const enc = (item.encounter_id || '').toLowerCase();
+    const complaint = (item.patient?.chief_complaint || '').toLowerCase();
+    const unit = (item.patient?.call_sign_or_unit || '').toLowerCase();
+    const narrative = (item.narrative_summary || '').toLowerCase();
+    const age = String(item.patient?.age || '');
+    const gender = (item.patient?.gender || '').toLowerCase();
+    return enc.includes(q) || complaint.includes(q) || unit.includes(q) || narrative.includes(q) || age.includes(q) || gender.includes(q);
+  });
+
   const formatTimer = (sec) => {
     const m = Math.floor(sec / 60);
     const s = sec % 60;
@@ -306,6 +374,17 @@ export default function App() {
               <Clock className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" />
               <span>{currentTime || 'SCENE TIME'}</span>
             </div>
+
+            {/* PATIENT HISTORY RETRIEVAL BUTTON (FOR NURSES RETRIEVING MULTIPLE PATIENTS) */}
+            <button
+              id="patient-history-btn"
+              onClick={openHistoryModal}
+              className="neo-btn bg-[#00e599] hover:bg-[#05d58f] text-black px-3.5 py-1.5 flex items-center gap-1.5 text-xs font-black uppercase tracking-wider cursor-pointer shadow-neo-sm transition-all"
+              title="Retrieve Patient History & Download Handover PDFs"
+            >
+              <FolderClock className="w-4 h-4 stroke-[2.5]" />
+              <span>Patient History</span>
+            </button>
 
             {/* DARK MODE SWITCH ON TOP RIGHT CORNER */}
             <button
@@ -649,9 +728,209 @@ export default function App() {
             <div className="p-4 border-t-2 border-[#121826] dark:border-[#2d3748] bg-white dark:bg-[#151c28] flex justify-end">
               <button
                 onClick={() => setShowLedgerModal(false)}
-                className="neo-btn px-4 py-2 bg-[#ffe600] text-black text-xs font-black uppercase tracking-wider"
+                className="neo-btn px-4 py-2 bg-[#ffe600] text-black text-xs font-black uppercase tracking-wider cursor-pointer"
               >
                 Close Audit Registry
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------------ */}
+      {/* PATIENT HISTORY RETRIEVAL MODAL (FOR EMERGENCY NURSES)             */}
+      {/* ------------------------------------------------------------------ */}
+      {showHistoryModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="neo-box max-w-4xl w-full max-h-[90vh] flex flex-col bg-white dark:bg-[#151c28] overflow-hidden shadow-neo-xl border-2.5 border-[#121826] dark:border-[#2d3748]">
+            {/* Modal Header */}
+            <div className="p-4 border-b-2.5 border-[#121826] dark:border-[#2d3748] flex items-center justify-between bg-[#00e599] text-black">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-black text-[#00e599] flex items-center justify-center shadow-neo-sm">
+                  <FolderClock className="w-5 h-5 stroke-[2.5]" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-black text-black tracking-tight">
+                      PATIENT RECORDS & HANDOVER HISTORY
+                    </h3>
+                    <span className="neo-badge bg-black text-white px-2 py-0.5 text-[10px]">
+                      {patientHistory.length} PATIENTS
+                    </span>
+                  </div>
+                  <p className="text-[11px] font-bold text-slate-900">
+                    Emergency Multi-Patient Retrieval • Direct Hospital PDF Export
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowHistoryModal(false)}
+                className="neo-btn bg-white text-black p-1.5 hover:bg-slate-100 cursor-pointer"
+                aria-label="Close history modal"
+              >
+                <X className="w-5 h-5 stroke-[2.5]" />
+              </button>
+            </div>
+
+            {/* Search Filter Bar */}
+            <div className="p-3.5 border-b-2 border-slate-200 dark:border-slate-800 bg-[#faf8f2] dark:bg-[#0f141d] flex flex-wrap items-center gap-3">
+              <div className="relative flex-1 min-w-[220px]">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                <input
+                  type="text"
+                  value={historySearchQuery}
+                  onChange={(e) => setHistorySearchQuery(e.target.value)}
+                  placeholder="Search by Encounter ID, Chief Complaint, Unit, or Symptoms..."
+                  className="w-full pl-9 pr-8 py-2 rounded-lg border-2 border-[#121826] dark:border-[#2d3748] bg-white dark:bg-[#1a2232] text-xs font-mono font-bold text-black dark:text-white placeholder:text-slate-400 focus:outline-none shadow-neo-sm"
+                />
+                {historySearchQuery && (
+                  <button
+                    onClick={() => setHistorySearchQuery('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-black dark:hover:text-white cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+              <button
+                onClick={openHistoryModal}
+                disabled={loadingHistory}
+                className="neo-btn px-3 py-2 bg-white dark:bg-[#1a2232] hover:bg-slate-100 dark:hover:bg-slate-700 text-black dark:text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-neo-sm"
+                title="Refresh patient history"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${loadingHistory ? 'animate-spin' : ''}`} />
+                <span>Refresh</span>
+              </button>
+            </div>
+
+            {/* Patient Cards List */}
+            <div className="p-4 sm:p-5 overflow-y-auto space-y-3.5 flex-1 bg-[#faf8f2] dark:bg-[#0c1017]">
+              {loadingHistory ? (
+                <div className="p-12 text-center space-y-3">
+                  <RefreshCw className="w-8 h-8 animate-spin mx-auto text-[#00e599]" />
+                  <p className="text-xs font-bold text-slate-600 dark:text-slate-400 font-mono">
+                    Loading patient records from edge database...
+                  </p>
+                </div>
+              ) : filteredHistory.length === 0 ? (
+                <div className="p-10 text-center rounded-xl bg-white dark:bg-[#151c28] border-2 border-[#121826] dark:border-[#2d3748] shadow-neo-sm">
+                  <AlertCircle className="w-8 h-8 mx-auto text-slate-400 mb-2" />
+                  <h4 className="text-sm font-black text-black dark:text-white">
+                    {historySearchQuery ? 'No matching patient records found' : 'No patient history recorded yet'}
+                  </h4>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                    {historySearchQuery ? 'Try clearing your search query' : 'Dictate or type patient notes on scene to build shift history.'}
+                  </p>
+                </div>
+              ) : (
+                filteredHistory.map((item) => (
+                  <div
+                    key={item.encounter_id}
+                    className="p-4 rounded-xl bg-white dark:bg-[#151c28] border-2 border-[#121826] dark:border-[#2d3748] shadow-neo-sm hover:shadow-neo transition-all flex flex-col md:flex-row md:items-center justify-between gap-4"
+                  >
+                    {/* Patient & Incident Info */}
+                    <div className="space-y-1.5 flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="neo-badge bg-[#ffe600] text-black px-2 py-0.5 font-mono text-[11px]">
+                          {item.encounter_id}
+                        </span>
+                        <span className="neo-badge bg-[#00d2ff] text-black px-2 py-0.5 font-mono text-[10px]">
+                          UNIT: {item.patient?.call_sign_or_unit || 'Medic'}
+                        </span>
+                        <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {item.timestamp ? item.timestamp.replace('T', ' ').substring(0, 19) : 'On Scene'}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2 pt-0.5">
+                        <span className="text-sm font-black text-black dark:text-white">
+                          {item.patient?.age ? `${item.patient.age} Y/O` : 'Adult'} • {item.patient?.gender || 'Unknown'}
+                        </span>
+                        {item.patient?.chief_complaint && (
+                          <span className="neo-badge bg-[#ff4d4d]/15 border-[#ff4d4d] text-[#ff4d4d] dark:text-[#ff8080] px-2 py-0.5 text-[10px]">
+                            {item.patient.chief_complaint}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Vitals & Summary Badges */}
+                      <div className="flex flex-wrap items-center gap-2 text-xs font-mono text-slate-700 dark:text-slate-300">
+                        {item.vitals_summary && (
+                          <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-[#0f141d] border border-slate-300 dark:border-slate-700 text-[11px] font-bold">
+                            {item.vitals_summary}
+                          </span>
+                        )}
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400 font-bold">
+                          {item.medications_count} Med(s) • {item.procedures_count} Procedure(s)
+                        </span>
+                      </div>
+
+                      {item.narrative_summary && (
+                        <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-1 italic font-sans pt-0.5">
+                          "{item.narrative_summary}"
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Quick Patient Action Buttons */}
+                    <div className="flex items-center gap-2 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-200 dark:border-slate-800">
+                      {/* Load / View Patient Record Button */}
+                      <button
+                        onClick={() => handleLoadPatientIntoView(item)}
+                        className="neo-btn px-3 py-2 bg-white dark:bg-[#1f2838] hover:bg-slate-100 dark:hover:bg-slate-700 text-black dark:text-white text-xs font-extrabold flex items-center gap-1.5 cursor-pointer"
+                        title="Load this patient report onto main screen"
+                      >
+                        <Eye className="w-3.5 h-3.5 stroke-[2.5]" />
+                        <span>View</span>
+                      </button>
+
+                      {/* Direct PDF Download Button */}
+                      <button
+                        onClick={() => handleDownloadHistoryPDF(item)}
+                        disabled={downloadingHistoryId === item.encounter_id}
+                        className="neo-btn px-3.5 py-2 bg-[#00e599] hover:bg-[#05d58f] text-black text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-neo-sm disabled:opacity-60 cursor-pointer"
+                        title="Download tamper-evident handover PDF for hospital handover"
+                      >
+                        {downloadingHistoryId === item.encounter_id ? (
+                          <>
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin stroke-[2.5]" />
+                            <span>PDF...</span>
+                          </>
+                        ) : (
+                          <>
+                            <FileDown className="w-3.5 h-3.5 stroke-[2.5]" />
+                            <span>Download PDF</span>
+                          </>
+                        )}
+                      </button>
+
+                      {/* Direct Print / New Tab Preview */}
+                      <a
+                        href={item.download_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="neo-btn p-2 bg-slate-100 dark:bg-[#1a2232] hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 flex items-center justify-center cursor-pointer"
+                        title="Open PDF in new tab (for hospital wireless printing / viewing)"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5 stroke-[2.5]" />
+                      </a>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t-2 border-[#121826] dark:border-[#2d3748] bg-white dark:bg-[#151c28] flex items-center justify-between">
+              <span className="text-xs font-mono font-bold text-slate-600 dark:text-slate-400">
+                Offline Edge Archive • Cryptographically Pinned
+              </span>
+              <button
+                onClick={() => setShowHistoryModal(false)}
+                className="neo-btn px-5 py-2 bg-[#ffe600] text-black text-xs font-black uppercase tracking-wider cursor-pointer"
+              >
+                Close History
               </button>
             </div>
           </div>
