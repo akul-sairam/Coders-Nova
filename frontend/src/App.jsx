@@ -388,6 +388,7 @@ export default function App() {
 
             {/* DARK MODE SWITCH ON TOP RIGHT CORNER */}
             <button
+              id="dark-mode-toggle"
               onClick={toggleDarkMode}
               className="neo-btn bg-[#ffe600] dark:bg-[#2d3748] text-black dark:text-[#ffe600] p-2 flex items-center justify-center transition-all cursor-pointer"
               title={darkMode ? "Switch to Daytime / Paper Mode" : "Switch to Night / Ambulance Mode"}
@@ -609,6 +610,7 @@ export default function App() {
 
             <div className="flex items-center gap-3">
               <button
+                id="audit-trail-btn"
                 onClick={openLedgerModal}
                 className="neo-btn px-4 py-2.5 bg-white hover:bg-slate-100 text-black text-xs font-black uppercase tracking-wider flex items-center gap-2"
               >
