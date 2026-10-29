@@ -128,6 +128,15 @@ export async function fetchLedger(limit = 20) {
 }
 
 /**
+ * Fetch structured patient history records for triage nurses
+ */
+export async function fetchPatientHistory(limit = 100) {
+  const res = await fetch(`${API_BASE}/patient-history?limit=${limit}`);
+  if (!res.ok) throw new Error('Failed to fetch patient history.');
+  return await res.json();
+}
+
+/**
  * Run full cryptographic integrity verification on the SHA-256 chain
  */
 export async function verifyLedgerChain() {

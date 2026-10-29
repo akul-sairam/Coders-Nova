@@ -399,7 +399,82 @@ async def download_pdf_by_encounter(encounter_id: str) -> Response:
 
 
 # ============================================================================
-# 7. CRYPTOGRAPHIC AUDIT LEDGER ENDPOINTS
+# 7. PATIENT HISTORY & MULTI-PATIENT RETRIEVAL (FOR EMERGENCY NURSES)
+# ============================================================================
+
+class PatientHistorySummary(BaseModel):
+    encounter_id: str
+    block_index: int
+    timestamp: str
+    patient: Dict[str, Any]
+    vitals_summary: Optional[str] = None
+    medications_count: int = 0
+    medications: List[str] = []
+    procedures_count: int = 0
+    procedures: List[str] = []
+    narrative_summary: Optional[str] = None
+    download_url: str
+    clinical_data: Dict[str, Any]
+    audit_block: Dict[str, Any]
+
+@app.get("/api/patient-history", response_model=List[PatientHistorySummary], tags=["History"])
+async def get_patient_history(limit: int = 100) -> List[PatientHistorySummary]:
+    """
+    Returns structured patient history records tailored for triage nurses and paramedics
+    managing multiple patients in emergency situations.
+    Enables retrieving past patient handover notes and exporting/downloading their PDFs.
+    """
+    blocks = await asyncio.to_thread(ledger_instance.get_history, limit=limit)
+    summaries = []
+
+    for block in blocks:
+        # Skip Genesis block
+        if block.index == 0 or block.encounter_id == "GENESIS":
+            continue
+
+        payload = block.payload
+        clinical_data = payload.get("clinical_data", {})
+        patient = clinical_data.get("patient", {})
+        vitals = clinical_data.get("vitals", [])
+        medications = clinical_data.get("medications", [])
+        procedures = clinical_data.get("procedures", [])
+        narrative = clinical_data.get("narrative_summary")
+
+        # Format quick vitals snippet
+        vitals_snippet = None
+        if vitals and len(vitals) > 0:
+            v0 = vitals[0]
+            parts = []
+            if v0.get("bp_systolic") and v0.get("bp_diastolic"):
+                parts.append(f"BP {v0['bp_systolic']}/{v0['bp_diastolic']}")
+            if v0.get("heart_rate"):
+                parts.append(f"HR {v0['heart_rate']}")
+            if v0.get("spo2"):
+                parts.append(f"SpO2 {v0['spo2']}%")
+            if parts:
+                vitals_snippet = " • ".join(parts)
+
+        summaries.append(PatientHistorySummary(
+            encounter_id=block.encounter_id,
+            block_index=block.index,
+            timestamp=block.timestamp,
+            patient=patient,
+            vitals_summary=vitals_snippet,
+            medications_count=len(medications),
+            medications=[m.get("name", "Unknown") for m in medications if m.get("name")],
+            procedures_count=len(procedures),
+            procedures=[p.get("name", "Unknown") for p in procedures if p.get("name")],
+            narrative_summary=narrative,
+            download_url=f"/api/download-pdf/{block.encounter_id}",
+            clinical_data=clinical_data,
+            audit_block=block.model_dump()
+        ))
+
+    return summaries
+
+
+# ============================================================================
+# 8. CRYPTOGRAPHIC AUDIT LEDGER ENDPOINTS
 # ============================================================================
 
 @app.get("/api/ledger", response_model=List[AuditBlock], tags=["Ledger"])
