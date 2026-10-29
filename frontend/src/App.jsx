@@ -13,8 +13,9 @@ import {
   X,
   Clock,
   Send,
-  PlusCircle,
-  ClipboardList
+  ClipboardList,
+  Sun,
+  Moon
 } from 'lucide-react';
 
 import {
@@ -28,8 +29,6 @@ import {
 
 import Timeline from './Timeline';
 
-
-
 export default function App() {
   // Application State
   const [health, setHealth] = useState(null);
@@ -40,6 +39,13 @@ export default function App() {
   const [noteText, setNoteText] = useState('');
   const [callSign, setCallSign] = useState('Medic 4');
   const [currentTime, setCurrentTime] = useState('');
+
+  // Dark Mode State (Persisted in localStorage, respects system default)
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('theme');
+    if (saved) return saved === 'dark';
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
 
   // Clinical Response
   const [clinicalResponse, setClinicalResponse] = useState(null);
@@ -59,6 +65,19 @@ export default function App() {
   const analyserRef = useRef(null);
   const [audioLevel, setAudioLevel] = useState(0);
   const animFrameRef = useRef(null);
+
+  // Synchronize dark mode class on <html> element
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [darkMode]);
+
+  const toggleDarkMode = () => setDarkMode(prev => !prev);
 
   useEffect(() => {
     loadHealth();
@@ -144,7 +163,7 @@ export default function App() {
 
     } catch (err) {
       console.error("Microphone access error:", err);
-      setErrorMsg("Microphone access unavailable. You can type on-scene notes or select a clinical preset.");
+      setErrorMsg("Microphone access unavailable. You can type on-scene notes directly.");
     }
   };
 
@@ -176,7 +195,7 @@ export default function App() {
   };
 
   // -------------------------------------------------------------------------
-  // TEXT & PRESET PROCESSING
+  // TEXT PROCESSING
   // -------------------------------------------------------------------------
   const handleProcessText = async (textToProcess) => {
     const text = textToProcess || noteText;
@@ -246,11 +265,11 @@ export default function App() {
   const activeSegments = Math.round((audioLevel / 100) * numSegments);
 
   return (
-    <div className="min-h-screen bg-[#faf8f2] text-[#121826] flex flex-col font-sans">
+    <div className="min-h-screen bg-[#faf8f2] dark:bg-[#0c1017] text-[#121826] dark:text-[#f1f5f9] flex flex-col font-sans transition-colors duration-200">
       {/* ------------------------------------------------------------------ */}
-      {/* CLEAN CLINICAL TOP NAVIGATION BAR (END-PRODUCT DESIGN)             */}
+      {/* CLEAN CLINICAL TOP NAVIGATION BAR WITH DARK MODE SWITCH            */}
       {/* ------------------------------------------------------------------ */}
-      <header className="border-b-[2.5px] border-[#121826] bg-white sticky top-0 z-40 px-4 py-3 shadow-neo-sm">
+      <header className="border-b-[2.5px] border-[#121826] dark:border-[#2d3748] bg-white dark:bg-[#151c28] sticky top-0 z-40 px-4 py-3 shadow-neo-sm transition-colors duration-200">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
           {/* Logo & Product Brand */}
           <div className="flex items-center gap-3">
@@ -259,23 +278,23 @@ export default function App() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-black tracking-tight text-[#121826]">
+                <h1 className="text-xl font-black tracking-tight text-[#121826] dark:text-white">
                   MEDICSCRIBE EMS
                 </h1>
                 <span className="neo-badge bg-[#00e599] text-black px-2 py-0.5 text-[10px]">
                   FIELD READY
                 </span>
               </div>
-              <p className="text-xs font-bold text-slate-600">
+              <p className="text-xs font-bold text-slate-600 dark:text-slate-400">
                 On-Scene Voice Dictation & Clinical Handover Generator
               </p>
             </div>
           </div>
 
-          {/* Clean Clinician Status & Incident Controls */}
+          {/* Clean Clinician Status, Incident Controls & Top-Right Dark Mode Switch */}
           <div className="flex items-center gap-2.5">
-            <div className="neo-badge bg-[#faf8f2] px-3 py-1.5 flex items-center gap-1.5 font-mono text-xs">
-              <Clock className="w-3.5 h-3.5 text-slate-600" />
+            <div className="neo-badge bg-[#faf8f2] dark:bg-[#0f141d] px-3 py-1.5 flex items-center gap-1.5 font-mono text-xs text-slate-700 dark:text-slate-300">
+              <Clock className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" />
               <span>{currentTime || 'SCENE TIME'}</span>
             </div>
 
@@ -285,11 +304,25 @@ export default function App() {
 
             <button
               onClick={openLedgerModal}
-              className="neo-btn bg-white hover:bg-slate-100 text-black px-3.5 py-1.5 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider"
+              className="neo-btn bg-white dark:bg-[#1f2838] hover:bg-slate-100 dark:hover:bg-slate-700 text-black dark:text-white px-3.5 py-1.5 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider"
               title="View Incident Handover Ledger"
             >
               <ClipboardList className="w-4 h-4" />
               <span>Handover Log</span>
+            </button>
+
+            {/* DARK MODE SWITCH ON TOP RIGHT CORNER */}
+            <button
+              onClick={toggleDarkMode}
+              className="neo-btn bg-[#ffe600] dark:bg-[#2d3748] text-black dark:text-[#ffe600] p-2 flex items-center justify-center transition-all cursor-pointer"
+              title={darkMode ? "Switch to Daytime / Paper Mode" : "Switch to Night / Ambulance Mode"}
+              aria-label="Toggle dark mode"
+            >
+              {darkMode ? (
+                <Sun className="w-4 h-4 stroke-[2.5]" />
+              ) : (
+                <Moon className="w-4 h-4 stroke-[2.5]" />
+              )}
             </button>
           </div>
         </div>
@@ -323,15 +356,15 @@ export default function App() {
         {/* ---------------------------------------------------------------- */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* LEFT: Voice Dictation Controller (5 cols) */}
-          <div className="lg:col-span-5 neo-box p-6 flex flex-col justify-between bg-white">
+          <div className="lg:col-span-5 neo-box p-6 flex flex-col justify-between bg-white dark:bg-[#151c28]">
             <div>
-              <div className="flex items-center justify-between mb-3 pb-3 border-b-2 border-slate-200">
-                <span className="text-xs font-black uppercase tracking-wider text-[#121826] font-mono flex items-center gap-1.5">
+              <div className="flex items-center justify-between mb-3 pb-3 border-b-2 border-slate-200 dark:border-slate-800">
+                <span className="text-xs font-black uppercase tracking-wider text-[#121826] dark:text-white font-mono flex items-center gap-1.5">
                   <Volume2 className="w-4 h-4 stroke-[2.5]" />
                   VOICE DICTATION
                 </span>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-mono font-bold text-slate-600">UNIT:</span>
+                  <span className="text-xs font-mono font-bold text-slate-600 dark:text-slate-400">UNIT:</span>
                   <input
                     type="text"
                     value={callSign}
@@ -342,7 +375,7 @@ export default function App() {
                 </div>
               </div>
 
-              <p className="text-xs font-medium text-slate-600 leading-relaxed">
+              <p className="text-xs font-medium text-slate-600 dark:text-slate-400 leading-relaxed">
                 Dictate the on-scene patient report. Speak vitals, medications, routes, and clinical procedures clearly.
               </p>
 
@@ -370,23 +403,23 @@ export default function App() {
                     </span>
                   </button>
                 )}
-                <span className="text-xs font-black uppercase tracking-wider text-slate-800 mt-3 font-mono">
+                <span className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-300 mt-3 font-mono">
                   {recording ? `● RECORDING IN PROGRESS (${formatTimer(recordDuration)})` : 'PRESS TO RECORD ON-SCENE'}
                 </span>
               </div>
 
               {/* Segmented LED Mic Level Meter */}
-              <div className="mt-4 p-3 rounded-xl bg-[#faf8f2] border-2 border-[#121826] shadow-neo-sm space-y-1.5">
-                <div className="flex justify-between items-center text-[10px] font-mono font-black text-slate-700 uppercase">
+              <div className="mt-4 p-3 rounded-xl bg-[#faf8f2] dark:bg-[#0f141d] border-2 border-[#121826] dark:border-[#2d3748] shadow-neo-sm space-y-1.5">
+                <div className="flex justify-between items-center text-[10px] font-mono font-black text-slate-700 dark:text-slate-300 uppercase">
                   <span>MICROPHONE INPUT</span>
-                  <span className="neo-badge bg-white px-1.5 py-0.2">
+                  <span className="neo-badge bg-white dark:bg-[#1f2838] px-1.5 py-0.2 text-[#121826] dark:text-white">
                     {recording ? `${audioLevel}% DETECTED` : 'READY'}
                   </span>
                 </div>
                 <div className="grid grid-cols-12 gap-1 pt-1">
                   {Array.from({ length: numSegments }).map((_, i) => {
                     const isActive = recording && i < activeSegments;
-                    let color = 'bg-slate-200';
+                    let color = 'bg-slate-200 dark:bg-slate-800';
                     if (isActive) {
                       if (i < 7) color = 'bg-[#00e599]';
                       else if (i < 10) color = 'bg-[#ffe600]';
@@ -413,10 +446,10 @@ export default function App() {
           </div>
 
           {/* RIGHT: Clinical On-Scene Notes Editor (7 cols) */}
-          <div className="lg:col-span-7 neo-box p-6 flex flex-col justify-between bg-white">
+          <div className="lg:col-span-7 neo-box p-6 flex flex-col justify-between bg-white dark:bg-[#151c28]">
             <div>
-              <div className="flex items-center justify-between mb-3 pb-3 border-b-2 border-slate-200">
-                <span className="text-xs font-black uppercase tracking-wider text-[#121826] font-mono flex items-center gap-1.5">
+              <div className="flex items-center justify-between mb-3 pb-3 border-b-2 border-slate-200 dark:border-slate-800">
+                <span className="text-xs font-black uppercase tracking-wider text-[#121826] dark:text-white font-mono flex items-center gap-1.5">
                   <FileText className="w-4 h-4 stroke-[2.5]" />
                   CLINICAL ON-SCENE NOTES
                 </span>
@@ -424,12 +457,12 @@ export default function App() {
                   {noteText.trim() && (
                     <button
                       onClick={() => setNoteText('')}
-                      className="text-[11px] font-bold text-slate-500 hover:text-black underline cursor-pointer"
+                      className="text-[11px] font-bold text-slate-500 hover:text-black dark:hover:text-white underline cursor-pointer"
                     >
                       Clear
                     </button>
                   )}
-                  <span className="neo-badge bg-[#faf8f2] px-2 py-0.5 text-[10px]">
+                  <span className="neo-badge bg-[#faf8f2] dark:bg-[#0f141d] px-2 py-0.5 text-[10px] text-slate-800 dark:text-slate-300">
                     {noteText.length} CHARACTERS
                   </span>
                 </div>
@@ -442,13 +475,13 @@ export default function App() {
                   onChange={(e) => setNoteText(e.target.value)}
                   placeholder="Spoken words will appear here automatically as you dictate, or you can paste / type on-scene clinical notes directly.&#10;&#10;Example:&#10;Medic 4 on scene. 65-year-old male with severe chest pain. Administered 324 mg aspirin orally and 0.4 sublingual nitro 5 mins ago. Placed 18g IV left AC, 12-lead ECG completed. Normal saline wide open. Vitals: BP 140/90, HR 88, SpO2 96%."
                   rows={9}
-                  className="w-full p-4 rounded-xl border-2.5 border-[#121826] shadow-neo-sm focus:shadow-neo text-xs font-mono font-medium text-[#121826] bg-[#faf8f2] leading-relaxed placeholder:text-slate-400 focus:outline-none transition-all resize-none"
+                  className="w-full p-4 rounded-xl border-2.5 border-[#121826] dark:border-[#2d3748] shadow-neo-sm focus:shadow-neo text-xs font-mono font-medium text-[#121826] dark:text-white bg-[#faf8f2] dark:bg-[#0f141d] leading-relaxed placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none transition-all resize-none"
                 />
               </div>
             </div>
 
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-3 pt-3 border-t-2 border-slate-200">
-              <span className="text-xs font-bold text-slate-600">
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3 pt-3 border-t-2 border-slate-200 dark:border-slate-800">
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-400">
                 Standardizes EMS terminology and resolves relative times automatically.
               </span>
               <button
@@ -523,8 +556,8 @@ export default function App() {
       {/* ------------------------------------------------------------------ */}
       {showLedgerModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="neo-box max-w-3xl w-full max-h-[85vh] flex flex-col bg-white overflow-hidden shadow-neo-xl">
-            <div className="p-4 border-b-2.5 border-[#121826] flex items-center justify-between bg-[#ffe600]">
+          <div className="neo-box max-w-3xl w-full max-h-[85vh] flex flex-col bg-white dark:bg-[#151c28] overflow-hidden shadow-neo-xl border-2.5 border-[#121826] dark:border-[#2d3748]">
+            <div className="p-4 border-b-2.5 border-[#121826] dark:border-[#2d3748] flex items-center justify-between bg-[#ffe600] text-black">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-black text-[#ffe600] flex items-center justify-center">
                   <ShieldCheck className="w-5 h-5 stroke-[2.5]" />
@@ -546,16 +579,16 @@ export default function App() {
               </button>
             </div>
 
-            <div className="p-5 overflow-y-auto space-y-4 flex-1 bg-[#faf8f2]">
+            <div className="p-5 overflow-y-auto space-y-4 flex-1 bg-[#faf8f2] dark:bg-[#0f141d]">
               {/* Verification Report Banner */}
               {verificationResult && (
-                <div className={`p-4 rounded-xl border-2 border-black shadow-neo-sm flex items-start gap-3 ${
+                <div className={`p-4 rounded-xl border-2 border-black dark:border-[#2d3748] shadow-neo-sm flex items-start gap-3 ${
                   verificationResult.is_valid
-                    ? 'bg-[#00e599]/30 text-black'
-                    : 'bg-[#ff4d4d]/20 text-black'
+                    ? 'bg-[#00e599]/30 text-black dark:text-white'
+                    : 'bg-[#ff4d4d]/20 text-black dark:text-white'
                 }`}>
                   <ShieldCheck className={`w-6 h-6 shrink-0 mt-0.5 stroke-[2.5] ${
-                    verificationResult.is_valid ? 'text-[#121826]' : 'text-[#ff4d4d]'
+                    verificationResult.is_valid ? 'text-[#121826] dark:text-[#00e599]' : 'text-[#ff4d4d]'
                   }`} />
                   <div>
                     <h4 className="text-xs font-black uppercase tracking-wider">
@@ -564,7 +597,7 @@ export default function App() {
                     <p className="text-xs font-bold mt-0.5">
                       {verificationResult.message}
                     </p>
-                    <div className="mt-2 text-[10px] font-mono font-bold text-slate-700">
+                    <div className="mt-2 text-[10px] font-mono font-bold text-slate-700 dark:text-slate-400">
                       Total Documented Incidents: {verificationResult.total_blocks} • Verified At: {verificationResult.verified_at}
                     </div>
                   </div>
@@ -573,25 +606,25 @@ export default function App() {
 
               {/* Block History Table */}
               <div className="space-y-2">
-                <span className="text-xs font-black text-[#121826] uppercase tracking-wider block font-mono">
+                <span className="text-xs font-black text-[#121826] dark:text-white uppercase tracking-wider block font-mono">
                   LOGGED INCIDENT ENCOUNTERS ({ledgerBlocks.length}):
                 </span>
                 <div className="space-y-2">
                   {ledgerBlocks.map((block) => (
                     <div
                       key={block.index}
-                      className="p-3.5 rounded-xl bg-white border-2 border-[#121826] shadow-neo-sm text-xs font-mono space-y-1.5"
+                      className="p-3.5 rounded-xl bg-white dark:bg-[#1a2232] border-2 border-[#121826] dark:border-[#2d3748] shadow-neo-sm text-xs font-mono space-y-1.5"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-black text-black">
+                        <span className="font-black text-black dark:text-white">
                           Encounter: {block.encounter_id}
                         </span>
-                        <span className="neo-badge bg-[#faf8f2] px-1.5 py-0.2 text-[10px]">
+                        <span className="neo-badge bg-[#faf8f2] dark:bg-[#0f141d] px-1.5 py-0.2 text-[10px] text-slate-800 dark:text-slate-300">
                           {block.timestamp}
                         </span>
                       </div>
-                      <div className="text-[11px] text-slate-700 truncate">
-                        <b className="text-black">Security Seal:</b> {block.block_hash}
+                      <div className="text-[11px] text-slate-700 dark:text-slate-300 truncate">
+                        <b className="text-black dark:text-white">Security Seal:</b> {block.block_hash}
                       </div>
                     </div>
                   ))}
@@ -599,7 +632,7 @@ export default function App() {
               </div>
             </div>
 
-            <div className="p-4 border-t-2 border-[#121826] bg-white flex justify-end">
+            <div className="p-4 border-t-2 border-[#121826] dark:border-[#2d3748] bg-white dark:bg-[#151c28] flex justify-end">
               <button
                 onClick={() => setShowLedgerModal(false)}
                 className="neo-btn px-4 py-2 bg-[#ffe600] text-black text-xs font-black uppercase tracking-wider"
@@ -614,7 +647,7 @@ export default function App() {
       {/* ------------------------------------------------------------------ */}
       {/* CLEAN MEDICAL PRODUCT FOOTER                                       */}
       {/* ------------------------------------------------------------------ */}
-      <footer className="border-t-[2.5px] border-[#121826] bg-white py-3.5 px-6 text-center text-xs font-bold text-slate-600">
+      <footer className="border-t-[2.5px] border-[#121826] dark:border-[#2d3748] bg-white dark:bg-[#151c28] py-3.5 px-6 text-center text-xs font-bold text-slate-600 dark:text-slate-400 transition-colors duration-200">
         MedicScribe EMS • Prehospital Electronic Handover System • NEMSIS & HL7 Field Compatible
       </footer>
     </div>

@@ -7,6 +7,12 @@
     background-color: #faf8f2;
     color: #121826;
     font-family: 'Space Grotesk', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  .dark body, body.dark {
+    background-color: #0c1017;
+    color: #f1f5f9;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -16,7 +22,7 @@
 }
 
 /* -------------------------------------------------------------------------- */
-/* NEOBRUTALISM CORE UTILITIES                                                */
+/* NEOBRUTALISM LIGHT & DARK MODE CORE UTILITIES                              */
 /* -------------------------------------------------------------------------- */
 
 .neo-box {
@@ -24,6 +30,14 @@
   border: 2.5px solid #121826;
   box-shadow: 4px 4px 0px 0px #121826;
   border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.dark .neo-box {
+  background-color: #151c28;
+  border: 2.5px solid #2d3748;
+  box-shadow: 4px 4px 0px 0px #000000;
+  color: #f1f5f9;
 }
 
 .neo-box-yellow {
@@ -31,6 +45,12 @@
   border: 2.5px solid #121826;
   box-shadow: 4px 4px 0px 0px #121826;
   border-radius: 12px;
+  color: #000000;
+}
+
+.dark .neo-box-yellow {
+  border-color: #000000;
+  box-shadow: 4px 4px 0px 0px #000000;
 }
 
 .neo-box-green {
@@ -38,6 +58,12 @@
   border: 2.5px solid #121826;
   box-shadow: 4px 4px 0px 0px #121826;
   border-radius: 12px;
+  color: #000000;
+}
+
+.dark .neo-box-green {
+  border-color: #000000;
+  box-shadow: 4px 4px 0px 0px #000000;
 }
 
 .neo-box-red {
@@ -45,20 +71,12 @@
   border: 2.5px solid #121826;
   box-shadow: 4px 4px 0px 0px #121826;
   border-radius: 12px;
+  color: #ffffff;
 }
 
-.neo-box-cyan {
-  background-color: #00d2ff;
-  border: 2.5px solid #121826;
-  box-shadow: 4px 4px 0px 0px #121826;
-  border-radius: 12px;
-}
-
-.neo-box-purple {
-  background-color: #cc88ff;
-  border: 2.5px solid #121826;
-  box-shadow: 4px 4px 0px 0px #121826;
-  border-radius: 12px;
+.dark .neo-box-red {
+  border-color: #000000;
+  box-shadow: 4px 4px 0px 0px #000000;
 }
 
 /* Tactile Push Buttons with Mechanical Action */
@@ -71,14 +89,27 @@
   cursor: pointer;
 }
 
+.dark .neo-btn {
+  border-color: #2d3748;
+  box-shadow: 3.5px 3.5px 0px 0px #000000;
+}
+
 .neo-btn:hover {
   transform: translate(1.5px, 1.5px);
   box-shadow: 2px 2px 0px 0px #121826;
 }
 
+.dark .neo-btn:hover {
+  box-shadow: 2px 2px 0px 0px #000000;
+}
+
 .neo-btn:active {
   transform: translate(3.5px, 3.5px);
   box-shadow: 0px 0px 0px 0px #121826;
+}
+
+.dark .neo-btn:active {
+  box-shadow: 0px 0px 0px 0px #000000;
 }
 
 /* Crisp Badge Stamps */
@@ -92,6 +123,11 @@
   letter-spacing: 0.04em;
 }
 
+.dark .neo-badge {
+  border-color: #374151;
+  box-shadow: 2px 2px 0px 0px #000000;
+}
+
 /* Segmented LED Volume/VAD Meter for EMS Radios */
 .led-segment {
   height: 10px;
@@ -100,11 +136,8 @@
   transition: background-color 0.05s ease;
 }
 
-/* Physical Paper Grid Pattern */
-.bg-grid-dots {
-  background-image: radial-gradient(#121826 1px, transparent 1px);
-  background-size: 20px 20px;
-  opacity: 0.07;
+.dark .led-segment {
+  border-color: #374151;
 }
 
 /* Custom High-Contrast Scrollbar */
@@ -116,10 +149,20 @@
   background: #f1ede3;
   border-left: 2px solid #121826;
 }
+.dark ::-webkit-scrollbar-track {
+  background: #0f141d;
+  border-left: 2px solid #2d3748;
+}
 ::-webkit-scrollbar-thumb {
   background: #121826;
   border-radius: 0px;
 }
+.dark ::-webkit-scrollbar-thumb {
+  background: #374151;
+}
 ::-webkit-scrollbar-thumb:hover {
+  background: #ffe600;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
   background: #ffe600;
 }
