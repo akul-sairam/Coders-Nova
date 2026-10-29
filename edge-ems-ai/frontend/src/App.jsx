@@ -298,10 +298,6 @@ export default function App() {
               <span>{currentTime || 'SCENE TIME'}</span>
             </div>
 
-            <div className="neo-badge bg-[#ffe600] px-3 py-1.5 font-mono text-xs text-black">
-              UNIT: {callSign}
-            </div>
-
             <button
               onClick={openLedgerModal}
               className="neo-btn bg-white dark:bg-[#1f2838] hover:bg-slate-100 dark:hover:bg-slate-700 text-black dark:text-white px-3.5 py-1.5 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider"
