@@ -1,0 +1,19 @@
+# Offline Edge EMS AI - Backend Dependencies
+fastapi>=0.110.0
+uvicorn>=0.29.0
+pydantic>=2.6.0
+python-multipart>=0.0.9
+
+# Edge Speech-to-Text with INT8 Quantization and Silero VAD
+faster-whisper>=1.0.0
+
+# Edge SLM Inference with GBNF Constrained Grammar Sampling (CPU optimized)
+# For CPU prebuilt wheels: pip install llama-cpp-python --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
+llama-cpp-python>=0.2.70
+
+# Tamper-Evident Medical Handover PDF Builder (Python 3.9+ compatible)
+reportlab<4.0.0
+
+# Utility & Audio Handling
+soundfile>=0.12.1
+requests>=2.31.0
