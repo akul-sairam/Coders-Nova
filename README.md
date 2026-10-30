@@ -1,4 +1,4 @@
-# MedicScribe EMS • Edge EMS AI
+n# MedicScribe EMS • Edge EMS AI
 ### Voice-to-Structured Clinical Handover System & Tamper-Evident Ledger
 
 [![Edge AI](https://img.shields.io/badge/Edge%20AI-100%25%20Offline%20CPU-00e599?style=for-the-badge&logo=cpu)](https://github.com/)
